@@ -6,23 +6,25 @@ import(
 	"strings"
 )
 
-// func TestFirst(t *testing.T){
-// 	r := strings.NewReader("MSH|^~\\&||bbbb|c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
-// 	parser, err := gohl7.NewParser(r)
+// This test is just an example of the package
+//usage 
+func TestFirst(t *testing.T){
+	r := strings.NewReader("MSH|^~\\&||bbbb|c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
+	parser, err := gohl7.NewParser(r)
 
-// 	if err != nil{
-// 		t.Fatal(err)
-// 	}
+	if err != nil{
+		t.Fatal(err)
+	}
 
-// 	sgments, err := parser.Parse()
-// 	if err != nil{
-// 		t.Fatal(err)
-// 	}
+	sgments, err := parser.Parse()
+	if err != nil{
+		t.Fatal(err)
+	}
 
-// 	for i := 0; i < len(sgments); i++{
-// 		t.Logf("%#v\n", sgments[i])
-// 	}
-// }
+	for i := 0; i < len(sgments); i++{
+		t.Logf("%#v\n", sgments[i])
+	}
+}
 
 func TestSimpleField(t *testing.T){
 	tests := []struct{
