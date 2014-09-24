@@ -4,6 +4,7 @@ import(
 	"gohl7"
 	"testing"
 	"strings"
+	"bytes"
 )
 
 // This test is just an example of the package
@@ -22,7 +23,7 @@ func TestFirst(t *testing.T){
 	}
 
 	for i := 0; i < len(sgments); i++{
-		t.Logf("%#v\n", sgments[i])
+		t.Logf("%s\n", sgments[i])
 	}
 }
 
@@ -156,9 +157,12 @@ func TestComponent(t *testing.T){
 		t.Fatal("Bad return value on Field method on Component")	
 	}
 
-	if simple != simpleField{
-		t.Fatal("Bad return field on Component")	
+	if !bytes.Equal(simple,simpleField){
+		t.Fatal("Bad return field on Component")
 	}
+	// if simple != simpleField{
+	// 	t.Fatal("Bad return field on Component")	
+	// }
 }
 
 func TestRepeated(t *testing.T){
@@ -209,8 +213,8 @@ func TestRepeated(t *testing.T){
 		t.Fatal("Bad return value on Field method on Repeated")	
 	}
 
-	if simple != simpleField{
-		t.Fatal("Bad return field on Repeated")	
+	if !bytes.Equal(simple,simpleField){
+		t.Fatal("Bad return field on Repeated")
 	}
 }
 
@@ -263,8 +267,8 @@ func TestSegment(t *testing.T){
 		t.Fatal("Bad return value on Field method on Segment")	
 	}
 
-	if simple != simpleField{
-		t.Fatal("Bad return field on Segment")	
+	if !bytes.Equal(simple,simpleField){
+		t.Fatal("Bad return field on Repeated")
 	}
 }
 

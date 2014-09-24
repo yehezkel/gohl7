@@ -168,9 +168,7 @@ func (p *Parser) appendField() (err error){
 			value = p.cmp
 			p.cmp = nil
 		}else{
-			value = SimpleField(
-				p.scanner.Text(),	
-			)
+			value = p.simpleField()
 		}
 	}
 
@@ -181,9 +179,7 @@ func (p *Parser) appendRepeated() (err error){
 	var value Hl7DataType
 
 	if p.last == p.field || p.last == p.repeated{
-		value = SimpleField(
-			p.scanner.Text(),
-		)
+		value = p.simpleField()
 	}else{
 		err = p.appendComponent()
 		if err != nil{
@@ -209,9 +205,7 @@ func (p *Parser) appendComponent() (err error){
 		value = p.scmp
 		p.scmp = nil
 	}else{
-		value = SimpleField(
-			p.scanner.Text(),
-		)
+		value = p.simpleField()
 	}
 
 	return p.cmp.AppendValue(value)
@@ -220,8 +214,17 @@ func (p *Parser) appendComponent() (err error){
 func (p *Parser) appendSubComponent() (err error){
 
 	return p.scmp.AppendValue(
-		SimpleField(p.scanner.Text()),
+		p.simpleField(),
 	)
+}
+
+func (p *Parser) simpleField() SimpleField{
+
+	raw := p.scanner.Bytes()
+	s := make(SimpleField,len(raw))
+	copy(s,raw)
+
+	return s
 }
 
 func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err error){
@@ -302,6 +305,7 @@ func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err e
 	return advance, token, err
 }
 
+
 func encodingToField(field, component, repeated, escape, subcomponent byte) (SimpleField, error){
 	
 	tmp := []byte{field, component,repeated, escape, subcomponent}
@@ -316,24 +320,24 @@ func encodingToField(field, component, repeated, escape, subcomponent byte) (Sim
 
 	if len(tmp) == 0{
 		//this error is so naive no need to add to global scope
-		return "", errors.New("Invalid encoding  bytes")
+		return nil, errors.New("Invalid encoding  bytes")
 	}
 
 	//check that all the encoding bytes are unique
 	for i := 0 ; i < len(tmp) ; i++{
 		for j := i + 1; j < len(tmp); j++{
 			if tmp[i] == tmp[j]{
-				return "", errBadEncoding
+				return nil, errBadEncoding
 			}
 		}
 	}
 
 	for _, e := range tmp{
 		if e == NL || e == CR{
-			return "", errBadEncoding
+			return nil, errBadEncoding
 		}
 	}
 
-	return SimpleField(string(tmp[1:])), nil
+	return SimpleField(tmp[1:]), nil
 }
 

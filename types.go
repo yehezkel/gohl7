@@ -25,7 +25,7 @@ type Hl7ComposedType interface{
 	AppendValue(v Hl7DataType) (error) 
 }
 
-type SimpleField 	  string
+type SimpleField 	  []byte
 type SubComponent	  []SimpleField
 type Component  	  []Hl7DataType
 type Repeated  	  	  []Hl7DataType
