@@ -20,6 +20,8 @@ var (
 	errBadEncoding     = errors.New("Invalid Encoding")
 )
 
+//the actual parser, and interesting point to notice is that even that the HL7 specification states that only '\r' is allow as segment separator
+//in the real world HL7 messages are modified on windows or linux so the parser suports \n, \r and \r\n as segment separator.
 type Parser struct{
 	scanner *bufio.Scanner
 
@@ -28,7 +30,7 @@ type Parser struct{
 	repeated 		byte
 	escape   		byte
 	subcomponent 	byte
-	
+
 	last 			byte
 	current			byte
 
@@ -40,8 +42,8 @@ type Parser struct{
 }
 
 func NewParser(r io.Reader) (*Parser, error){
-	
-	l := 5 
+
+	l := 5
 	buffer := make([]byte,l)
 
 	_, err := r.Read(buffer[:4])
@@ -50,11 +52,11 @@ func NewParser(r io.Reader) (*Parser, error){
 	}
 
 	if string(buffer[:3]) != HEADER_LABEL{
-		return nil, errMssgHeader 
+		return nil, errMssgHeader
 	}
 
-	field_separator, i := buffer[3], 0 
-    
+	field_separator, i := buffer[3], 0
+
 	for ; i < l; i++ {
 		_, err = r.Read(buffer[i:i+1])
 		if err != nil{
@@ -74,7 +76,7 @@ func NewParser(r io.Reader) (*Parser, error){
 	for ; i < l; i++ {
 		buffer[i] = 0
 	}
-	
+
 	return &Parser{
 		scanner: bufio.NewScanner(r),
 		field: field_separator,
@@ -86,9 +88,9 @@ func NewParser(r io.Reader) (*Parser, error){
 }
 
 func (p *Parser) Parse() ([]Segment,error){
-	
+
 	encoding, err := encodingToField(
-		p.field,p.component, 
+		p.field,p.component,
 		p.repeated, p.escape,
 		p.subcomponent,
 	)
@@ -99,9 +101,9 @@ func (p *Parser) Parse() ([]Segment,error){
 
 	header := Segment([]Hl7DataType{
 		SimpleField(HEADER_LABEL),
-		encoding,		
+		encoding,
 	})
-	
+
 	p.sgmt = header
 	p.last = p.field
 	p.current = p.field
@@ -121,7 +123,7 @@ func (p *Parser) Parse() ([]Segment,error){
 		case p.component:
 			err = p.appendComponent()
 		case p.subcomponent:
-			err = p.appendSubComponent()	
+			err = p.appendSubComponent()
 		case p.repeated:
 		    err = p.appendRepeated()
 		}
@@ -135,9 +137,9 @@ func (p *Parser) Parse() ([]Segment,error){
 }
 
 func (p *Parser) appendSegment() (err error){
-	
+
 	if err = p.appendField(); err != nil{
-		return err 
+		return err
 	}
 
 	p.segments = append(p.segments,p.sgmt)
@@ -146,9 +148,9 @@ func (p *Parser) appendSegment() (err error){
 }
 
 func (p *Parser) appendField() (err error){
- 
+
 	var value Hl7DataType
-	
+
 	if p.rep != nil{
 		if err = p.appendRepeated(); err !=nil{
 			return err
@@ -157,8 +159,8 @@ func (p *Parser) appendField() (err error){
 		value = p.rep
 		p.rep = nil
 	}else{
-		
-		if p.last == p.component || 
+
+		if p.last == p.component ||
 		   p.last == p.subcomponent{
 
 			if err = p.appendComponent(); err != nil{
@@ -230,14 +232,14 @@ func (p *Parser) simpleField() SimpleField{
 func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err error){
 
 	i, escape := 0, false
-	
+
 	OuterLoop:
 	for ;i < len(data);i++{
-		switch data[i]{			
+		switch data[i]{
 			case p.escape:
-				if (i == len(data) - 1 && atEOF)  || 
+				if (i == len(data) - 1 && atEOF)  ||
 				   (i < (len(data) - 1) 		  &&
-				    data[i + 1] != p.escape       && 
+				    data[i + 1] != p.escape       &&
 					data[i + 1] != p.field 		  &&
 					data[i + 1] != p.component    &&
 					data[i + 1] != p.subcomponent &&
@@ -256,8 +258,8 @@ func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err e
 			case p.field:
 				if (p.current == NL || p.current == CR) &&
 					i != 3{
-					return advance, token, errHeaderLength	
-				}				
+					return advance, token, errHeaderLength
+				}
 				break OuterLoop
 			case p.component,p.repeated, p.subcomponent, CR:
 				if p.current == NL || p.current == CR{
@@ -282,7 +284,7 @@ func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err e
 	if atEOF || found{
 		p.last = p.current
 		p.current = CR
-		
+
 		if found{
 			p.current = data[i]
 		}
@@ -307,7 +309,7 @@ func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err e
 
 
 func encodingToField(field, component, repeated, escape, subcomponent byte) (SimpleField, error){
-	
+
 	tmp := []byte{field, component,repeated, escape, subcomponent}
 
 	//remove not specified encoding bytes

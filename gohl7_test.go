@@ -8,7 +8,7 @@ import(
 )
 
 // This test is just an example of the package
-//usage 
+//usage
 func TestFirst(t *testing.T){
 	r := strings.NewReader("MSH|^~\\&||bbbb|c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
 	parser, err := gohl7.NewParser(r)
@@ -98,7 +98,7 @@ func TestSubComponent(t *testing.T){
 		simpleField1 := result.(gohl7.SimpleField)
 		simpleField2 := v.value.(gohl7.SimpleField)
 		if string(simpleField1) != string(simpleField2) {
-			t.Fatal("Expecting %s go %s\n", simpleField2, simpleField1)	
+			t.Fatal("Expecting %s go %s\n", simpleField2, simpleField1)
 		}
 	}
 
@@ -125,25 +125,25 @@ func TestComponent(t *testing.T){
 		t.Fatal("Component can not contain a Segment")
 	}
 
-	err = c.AppendValue(c1) 
+	err = c.AppendValue(c1)
 	if err == nil{
 		t.Fatal("Component can not contain a Component")
 	}
 
-	err = c.AppendValue(sub) 
+	err = c.AppendValue(sub)
 	if err != nil{
 		t.Fatal("Component may contain a SubComponent")
 	}
-	
+
 	simpleField := gohl7.SimpleField("test")
 	err = c.AppendValue(simpleField)
 	if err != nil{
-		t.Fatal("Component may contain a SimpleField")	
+		t.Fatal("Component may contain a SimpleField")
 	}
 
 	_, ok := c.Field(2)
 	if ok{
-		t.Fatal("Component Field out of bound should return false")	
+		t.Fatal("Component Field out of bound should return false")
 	}
 
 	result, ok := c.Field(1)
@@ -154,14 +154,14 @@ func TestComponent(t *testing.T){
 	simple, ok := result.(gohl7.SimpleField)
 
 	if !ok{
-		t.Fatal("Bad return value on Field method on Component")	
+		t.Fatal("Bad return value on Field method on Component")
 	}
 
 	if !bytes.Equal(simple,simpleField){
 		t.Fatal("Bad return field on Component")
 	}
 	// if simple != simpleField{
-	// 	t.Fatal("Bad return field on Component")	
+	// 	t.Fatal("Bad return field on Component")
 	// }
 }
 
@@ -181,25 +181,25 @@ func TestRepeated(t *testing.T){
 		t.Fatal("Repeated can not contain a Segment")
 	}
 
-	err = r.AppendValue(c) 
+	err = r.AppendValue(c)
 	if err != nil{
 		t.Fatal("Repeated may contain a Component Field")
 	}
 
-	err = r.AppendValue(sub) 
+	err = r.AppendValue(sub)
 	if err != nil{
 		t.Fatal("Repeated may contain a SubComponent Field")
 	}
-	
+
 	simpleField := gohl7.SimpleField("test")
 	err = r.AppendValue(simpleField)
 	if err != nil{
-		t.Fatal("Repeated may contain a SimpleField Field")	
+		t.Fatal("Repeated may contain a SimpleField Field")
 	}
 
 	_, ok := r.Field(3)
 	if ok{
-		t.Fatal("Repeated Field out of bound should return false")	
+		t.Fatal("Repeated Field out of bound should return false")
 	}
 
 	result, ok := r.Field(2)
@@ -210,7 +210,7 @@ func TestRepeated(t *testing.T){
 	simple, ok := result.(gohl7.SimpleField)
 
 	if !ok{
-		t.Fatal("Bad return value on Field method on Repeated")	
+		t.Fatal("Bad return value on Field method on Repeated")
 	}
 
 	if !bytes.Equal(simple,simpleField){
@@ -228,7 +228,7 @@ func TestSegment(t *testing.T){
 	simpleField := gohl7.SimpleField("MSH")
 	err := s.AppendValue(simpleField)
 	if err != nil{
-		t.Fatal("Segment may contain a SimpleField Field")	
+		t.Fatal("Segment may contain a SimpleField Field")
 	}
 
 	err = s.AppendValue(r)
@@ -246,14 +246,14 @@ func TestSegment(t *testing.T){
 		t.Fatal("Segment may contain a Component Field")
 	}
 
-	err = s.AppendValue(sub) 
+	err = s.AppendValue(sub)
 	if err != nil{
 		t.Fatal("Segment may contain a SubComponent Field")
 	}
-	
+
 	_, ok := s.Field(4)
 	if ok{
-		t.Fatal("Segment Field out of bound should return false")	
+		t.Fatal("Segment Field out of bound should return false")
 	}
 
 	result, ok := s.Field(0)
@@ -264,7 +264,7 @@ func TestSegment(t *testing.T){
 	simple, ok := result.(gohl7.SimpleField)
 
 	if !ok{
-		t.Fatal("Bad return value on Field method on Segment")	
+		t.Fatal("Bad return value on Field method on Segment")
 	}
 
 	if !bytes.Equal(simple,simpleField){
@@ -311,7 +311,7 @@ func TestBadEncoding(t *testing.T){
 		r := strings.NewReader(v)
 		parser, err1 := gohl7.NewParser(r)
 		var err2 error
-		
+
 		if err1 == nil{
 			_, err2 = parser.Parse()
 		}
@@ -332,13 +332,13 @@ func TestMultipleSegments(t *testing.T){
 	for _, v := range tests{
 		r := strings.NewReader(v)
 		parser, err := gohl7.NewParser(r)
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
-		
+
 		segments, err := parser.Parse()
-		
+
 		if len(segments) != 2{
 			t.Fatalf("Expecting 2 segments with %s\n", v)
 		}
@@ -355,13 +355,13 @@ func TestBadSegmentHeader(t *testing.T){
 	for _, v := range tests{
 		r := strings.NewReader(v)
 		parser, err := gohl7.NewParser(r)
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
-		
+
 		_, err = parser.Parse()
-		
+
 		if err == nil{
 			t.Fatalf("Expecting error on segment header in %s\n", v)
 		}
@@ -381,13 +381,13 @@ func TestBadSeparatorAfterHeader(t *testing.T){
 	for _, v := range tests{
 		r := strings.NewReader(v)
 		parser, err := gohl7.NewParser(r)
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
-		
+
 		_, err = parser.Parse()
-		
+
 		if err == nil{
 			t.Fatalf("Expecting error on segment header in %s\n", v)
 		}
@@ -403,13 +403,13 @@ func TestBadEscaping(t *testing.T){
 	for _, v := range tests{
 		r := strings.NewReader(v)
 		parser, err := gohl7.NewParser(r)
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
-		
+
 		_, err = parser.Parse()
-		
+
 		if err == nil{
 			t.Fatalf("Expecting error on segment header in %s\n", v)
 		}
@@ -434,13 +434,13 @@ func TestEscaping(t *testing.T){
 	for _, v := range tests{
 		r := strings.NewReader(v.mssg)
 		parser, err := gohl7.NewParser(r)
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
-		
+
 		segments, err := parser.Parse()
-		
+
 		if err != nil{
 			t.Fatal(err)
 		}
@@ -452,23 +452,23 @@ func TestEscaping(t *testing.T){
 		s := segments[0]
 
 		if len(s) != v.count{
-			t.Fatalf("expecting %d fields on segment: %s\n",v.count, v.mssg)	
+			t.Fatalf("expecting %d fields on segment: %s\n",v.count, v.mssg)
 		}
 
 		field, ok := s.Field(v.index)
 
 		if !ok{
-			t.Fatalf("expecting field at index %d in %s\n", v.index, v.mssg)	
+			t.Fatalf("expecting field at index %d in %s\n", v.index, v.mssg)
 		}
 
 		str, ok := (field).(gohl7.SimpleField)
 
 		if !ok{
-			t.Fatalf("expecting SimpleField on field %d in %s\n", v.index, v.mssg)	
-		} 
+			t.Fatalf("expecting SimpleField on field %d in %s\n", v.index, v.mssg)
+		}
 
 		if string(str) != v.value{
-			t.Fatalf("expecting %s after escaping %s\n", v.value, s[v.index])	
+			t.Fatalf("expecting %s after escaping %s\n", v.value, s[v.index])
 		}
 	}
 }
