@@ -1,7 +1,7 @@
 package gohl7_test
 
 import(
-	"gohl7"
+	"github.com/yehezkel/gohl7"
 	"testing"
 	"strings"
 	"bytes"
