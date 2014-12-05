@@ -1,8 +1,8 @@
 package gohl72_test
 
 import(
-	"gohl72"
 	"testing"
+	"bitbucket.org/yehezkel/gohl7"
 )
 
 func TestBadHeader(t *testing.T){
