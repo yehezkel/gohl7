@@ -1,4 +1,4 @@
-package gohl72
+package gohl7
 
 import (
 	"errors"
@@ -99,7 +99,7 @@ func (c *Component) AppendValue(v Hl7DataType) (err error){
 
 	switch v.(type){
 		case *SimpleField, *SubComponent: err = nil
-		default: 
+		default:
 			return errComponentType
 	}
 
@@ -125,7 +125,7 @@ func (r *Repeated) AppendValue(v Hl7DataType) (err error){
 	switch v.(type){
 		case *SimpleField, *SubComponent, *Component:
 			err = nil
-		default: 
+		default:
 			return errRepeatType
 	}
 

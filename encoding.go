@@ -1,4 +1,4 @@
-package gohl72
+package gohl7
 
 import(
 	"errors"
@@ -18,16 +18,16 @@ type Encoding struct{
 
 func newEncoding(buffer []byte)(*Encoding, int, error){
 
-	l, i := len(buffer), 0	
-	
+	l, i := len(buffer), 0
+
 	if l == 0 {
 		return nil, 0, errBadEncoding
 	}
-	
+
 	encoding := new(Encoding)
-	
-	encoding.Field = buffer[i]	
-	
+
+	encoding.Field = buffer[i]
+
 	i++
 	if i == l{
 		return nil, i, errBadEncoding
@@ -38,7 +38,7 @@ func newEncoding(buffer []byte)(*Encoding, int, error){
 	}
 
 	encoding.Component = buffer[i]
-	
+
 	i++
 	if i == l{
 		return nil, i, errBadEncoding
@@ -60,7 +60,7 @@ func newEncoding(buffer []byte)(*Encoding, int, error){
 	}
 
 	encoding.Escaping = buffer[i]
-	
+
 	i++
 	if i == l{
 		return nil, i, errBadEncoding
@@ -82,10 +82,10 @@ func newEncoding(buffer []byte)(*Encoding, int, error){
 
 func (enc *Encoding) ToSimpleField() (*SimpleField, error){
 	tmp := []byte{
-		enc.Field, 
-		enc.Component, 
-		enc.Repeated, 
-		enc.Escaping, 
+		enc.Field,
+		enc.Component,
+		enc.Repeated,
+		enc.Escaping,
 		enc.Subcomponent,
 	}
 
@@ -98,13 +98,13 @@ func (enc *Encoding) ToSimpleField() (*SimpleField, error){
 
 	//check that at leat the field encoding exist
 	if len(tmp) == 0{
-		return nil, errBadEncoding 
+		return nil, errBadEncoding
 	}
 
 	//check that all the encoding bytes are unique
 	//check that no encoding character is NL or CR
 	for i := 0 ; i < len(tmp) ; i++{
-		
+
 		if tmp[i] == NL || tmp[i] == CR{
 			return nil, errBadEncoding
 		}
@@ -119,6 +119,17 @@ func (enc *Encoding) ToSimpleField() (*SimpleField, error){
 	return &SimpleField{
 		value: tmp[1:],
 	}, nil
+}
+
+func (enc *Encoding) IsToken(b byte) bool{
+	return (
+			b == enc.Field ||
+		    b == enc.Escaping ||
+		    b == enc.Component ||
+		    b == enc.Repeated ||
+		    b == enc.Subcomponent ||
+		    b == CR ||
+		    b == NL)
 }
 
 

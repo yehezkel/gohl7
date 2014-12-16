@@ -1,4 +1,4 @@
-package gohl72
+package gohl7
 
 
 type Message struct{
