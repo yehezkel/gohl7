@@ -1,22 +1,22 @@
 package gohl7
 
-import(
+import (
 	"errors"
 )
 
-var(
-	errBadEncoding     = errors.New("Invalid Encoding")
+var (
+	errBadEncoding = errors.New("Invalid Encoding")
 )
 
-type Encoding struct{
-	Field byte
-	Component byte
-	Repeated byte
-	Escaping byte
+type Encoding struct {
+	Field        byte
+	Component    byte
+	Repeated     byte
+	Escaping     byte
 	Subcomponent byte
 }
 
-func newEncoding(buffer []byte)(*Encoding, int, error){
+func newEncoding(buffer []byte) (*Encoding, int, error) {
 
 	l, i := len(buffer), 0
 
@@ -29,58 +29,58 @@ func newEncoding(buffer []byte)(*Encoding, int, error){
 	encoding.Field = buffer[i]
 
 	i++
-	if i == l{
+	if i == l {
 		return nil, i, errBadEncoding
 	}
 
-	if buffer[i] == encoding.Field{
-		return encoding, i+1, nil
+	if buffer[i] == encoding.Field {
+		return encoding, i + 1, nil
 	}
 
 	encoding.Component = buffer[i]
 
 	i++
-	if i == l{
+	if i == l {
 		return nil, i, errBadEncoding
 	}
 
-	if buffer[i] == encoding.Field{
-		return encoding, i+1, nil
+	if buffer[i] == encoding.Field {
+		return encoding, i + 1, nil
 	}
 
 	encoding.Repeated = buffer[i]
 
 	i++
-	if i == l{
+	if i == l {
 		return nil, i, errBadEncoding
 	}
 
-	if buffer[i] == encoding.Field{
-		return encoding, i+1, nil
+	if buffer[i] == encoding.Field {
+		return encoding, i + 1, nil
 	}
 
 	encoding.Escaping = buffer[i]
 
 	i++
-	if i == l{
+	if i == l {
 		return nil, i, errBadEncoding
 	}
 
-	if buffer[i] == encoding.Field{
-		return encoding, i+1, nil
+	if buffer[i] == encoding.Field {
+		return encoding, i + 1, nil
 	}
 
 	encoding.Subcomponent = buffer[i]
 
 	i++
-	if i == l || buffer[i] != encoding.Field{
-		return nil, i ,errBadEncoding
+	if i == l || buffer[i] != encoding.Field {
+		return nil, i, errBadEncoding
 	}
 
-	return encoding, i+1, nil
+	return encoding, i + 1, nil
 }
 
-func (enc *Encoding) ToSimpleField() (*SimpleField, error){
+func (enc *Encoding) ToSimpleField() (*SimpleField, error) {
 	tmp := []byte{
 		enc.Field,
 		enc.Component,
@@ -89,28 +89,28 @@ func (enc *Encoding) ToSimpleField() (*SimpleField, error){
 		enc.Subcomponent,
 	}
 
-	for i:= 0; i < 5; i++{
-		if tmp[i] == 0{
+	for i := 0; i < 5; i++ {
+		if tmp[i] == 0 {
 			tmp = tmp[:i]
 			break
 		}
 	}
 
 	//check that at leat the field encoding exist
-	if len(tmp) == 0{
+	if len(tmp) == 0 {
 		return nil, errBadEncoding
 	}
 
 	//check that all the encoding bytes are unique
 	//check that no encoding character is NL or CR
-	for i := 0 ; i < len(tmp) ; i++{
+	for i := 0; i < len(tmp); i++ {
 
-		if tmp[i] == NL || tmp[i] == CR{
+		if tmp[i] == NL || tmp[i] == CR {
 			return nil, errBadEncoding
 		}
 
-		for j := i + 1; j < len(tmp); j++{
-			if tmp[i] == tmp[j]{
+		for j := i + 1; j < len(tmp); j++ {
+			if tmp[i] == tmp[j] {
 				return nil, errBadEncoding
 			}
 		}
@@ -121,15 +121,12 @@ func (enc *Encoding) ToSimpleField() (*SimpleField, error){
 	}, nil
 }
 
-func (enc *Encoding) IsToken(b byte) bool{
-	return (
-			b == enc.Field ||
-		    b == enc.Escaping ||
-		    b == enc.Component ||
-		    b == enc.Repeated ||
-		    b == enc.Subcomponent ||
-		    b == CR ||
-		    b == NL)
+func (enc *Encoding) IsToken(b byte) bool {
+	return (b == enc.Field ||
+		b == enc.Escaping ||
+		b == enc.Component ||
+		b == enc.Repeated ||
+		b == enc.Subcomponent ||
+		b == CR ||
+		b == NL)
 }
-
-
