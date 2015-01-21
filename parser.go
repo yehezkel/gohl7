@@ -2,7 +2,6 @@ package gohl7
 
 import (
 	"errors"
-	//"fmt"
 )
 
 const (
@@ -52,6 +51,7 @@ func NewParser(buffer []byte) (*Parser, error) {
 	return &Parser{
 		buffer:   buffer,
 		r:        3 + advance,
+		c:        3 + advance,
 		encoding: encoding,
 	}, nil
 }
@@ -78,8 +78,6 @@ func (p *Parser) Parse() ([]*Segment, error) {
 
 	p.last = p.encoding.Field
 	p.current = p.encoding.Field
-
-	p.segments = append(p.segments, p.sgmt)
 
 	var token []byte
 	var err error
@@ -113,7 +111,6 @@ func (p *Parser) Parse() ([]*Segment, error) {
 	if err == eod {
 		err = nil
 	}
-
 	return p.segments, err
 }
 
@@ -199,7 +196,6 @@ OuterLoop:
 	p.r = r + 1
 	token := buffer[p.c:c]
 	p.c = c + 1
-	//fmt.Printf("%s\n", token)
 
 	p.last = p.current
 	p.current = found

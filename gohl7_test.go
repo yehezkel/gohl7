@@ -2,6 +2,7 @@ package gohl7_test
 
 import (
 	"bitbucket.org/yehezkel/gohl7"
+	//"fmt"
 	"testing"
 )
 
@@ -41,9 +42,9 @@ func TestMultipleSegments(t *testing.T) {
 		mssg  []byte
 		count int
 	}{
-		{[]byte("MSH|^~\\&|\rEVN|A28"), 2},
-		{[]byte("MSH|^~\\&|\nEVN|A28"), 2},
-		{[]byte("MSH|^~\\&|\r\nEVN|A28"), 2},
+		{[]byte("MSH|^~\\&|\rEVN|A21"), 2},
+		{[]byte("MSH|^~\\&|\nEVN|A22"), 2},
+		{[]byte("MSH|^~\\&|\r\nEVN|A23"), 2},
 	}
 
 	for _, v := range tests {
