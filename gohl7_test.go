@@ -66,3 +66,51 @@ func TestMultipleSegments(t *testing.T) {
 	}
 
 }
+
+func TestMssgComponent(t *testing.T) {
+	tests := []struct {
+		mssg   []byte
+		index  int      //component index
+		values []string //expected values on each component field
+	}{
+		{[]byte("MSH|^~\\&|c1^c2^c3|"), 2, []string{"c1", "c2", "c3"}},
+	}
+
+	for _, v := range tests {
+		parser, err := gohl7.NewParser(v.mssg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		segments, err := parser.Parse()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(segments) < 1 {
+			t.Fatalf("unexpected empty segments\n")
+		}
+		field, ok := segments[0].Field(v.index)
+		if !ok {
+			t.Fatalf("component does not exist at index %d of %s\n", v.index, v.mssg)
+		}
+
+		cmp, ok := field.(*gohl7.Component)
+		if !ok {
+			t.Fatalf("expecting *gohtl7.Component")
+		}
+
+		for index, expected := range v.values {
+			field, ok := cmp.Field(index)
+			if !ok {
+				t.Fatalf("expecting simple field: %s at position %d", expected, index)
+			}
+
+			simple, ok := field.(*gohl7.SimpleField)
+
+			if simple.String() != expected {
+				t.Fatalf("expecting: %s got %s", expected, simple)
+			}
+		}
+	}
+}
