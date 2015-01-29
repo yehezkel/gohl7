@@ -190,7 +190,7 @@ func (p *Parser) scan() ([]byte, error) {
 	r, c, l := p.r, p.c, len(p.buffer)
 	buffer := p.buffer[:]
 
-	if r >= l {
+	if r > l {
 		return nil, eod
 	}
 
@@ -243,6 +243,5 @@ OuterLoop:
 
 	p.last = p.current
 	p.current = found
-
 	return token, nil
 }

@@ -73,7 +73,8 @@ func TestMssgComponent(t *testing.T) {
 		index  int      //component index
 		values []string //expected values on each component field
 	}{
-		{[]byte("MSH|^~\\&|c1^c2^c3|"), 2, []string{"c1", "c2", "c3"}},
+		{[]byte("MSH|^~\\&|c1^c2^c3|test"), 2, []string{"c1", "c2", "c3"}},
+		{[]byte("MSH|^~\\&|c1^c2^"), 2, []string{"c1", "c2", ""}},
 	}
 
 	for _, v := range tests {
