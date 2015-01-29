@@ -67,6 +67,69 @@ func TestMultipleSegments(t *testing.T) {
 
 }
 
+func TestMssgSubComponent(t *testing.T) {
+	tests := []struct {
+		mssg   []byte
+		cindex int      //component index
+		sindex int      //subcomponent index
+		values []string //subcomponent values
+	}{
+		{[]byte("MSH|^~\\&|c1^s1&s2^c2|last"), 2, 1, []string{"s1", "s2"}},
+		{[]byte("MSH|^~\\&|s1&s2^c2|last"), 2, 0, []string{"s1", "s2"}},
+		{[]byte("MSH|^~\\&|&s2|last"), 2, 0, []string{"", "s2"}},
+	}
+
+	for _, v := range tests {
+		parser, err := gohl7.NewParser(v.mssg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		segments, err := parser.Parse()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(segments) != 1 {
+			t.Fatalf("unexpected segments length\n")
+		}
+
+		field, ok := segments[0].Field(v.cindex)
+		if !ok {
+			t.Fatalf("Expecting field at index %d\n", v.cindex)
+		}
+
+		cmp, ok := field.(*gohl7.Component)
+		if !ok {
+			t.Fatalf("Expecting *gohl7.Component at position: %d\n", v.cindex)
+		}
+
+		field, ok = cmp.Field(v.sindex)
+		if !ok {
+			t.Fatalf("Expecting field at index: %d\n", v.sindex)
+		}
+
+		scmp, ok := field.(*gohl7.SubComponent)
+		if !ok {
+			t.Fatalf("Expecting subcomponent at index %d\n", v.sindex)
+		}
+
+		for index, expected := range v.values {
+			field, ok := scmp.Field(index)
+			if !ok {
+				t.Fatalf("expecting simple field: %s at position %d", expected, index)
+			}
+
+			simple, ok := field.(*gohl7.SimpleField)
+
+			if simple.String() != expected {
+				t.Fatalf("expecting: %s got %s", expected, simple)
+			}
+		}
+
+	}
+}
+
 func TestMssgComponent(t *testing.T) {
 	tests := []struct {
 		mssg   []byte
