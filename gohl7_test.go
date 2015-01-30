@@ -44,7 +44,7 @@ func TestMultipleSegments(t *testing.T) {
 	}{
 		{[]byte("MSH|^~\\&|\rEVN|A21"), 2},
 		{[]byte("MSH|^~\\&|\nEVN|A22"), 2},
-		{[]byte("MSH|^~\\&|\r\nEVN|A23"), 2},
+		{[]byte("MSH|^~\\&|\r\nEVN|A23|"), 2},
 	}
 
 	for _, v := range tests {
@@ -161,7 +161,7 @@ func TestMssgComponent(t *testing.T) {
 
 		cmp, ok := field.(*gohl7.Component)
 		if !ok {
-			t.Fatalf("expecting *gohtl7.Component")
+			t.Fatalf("expecting *gohl7.Component got: %T", field)
 		}
 
 		for index, expected := range v.values {
@@ -172,6 +172,52 @@ func TestMssgComponent(t *testing.T) {
 
 			simple, ok := field.(*gohl7.SimpleField)
 
+			if simple.String() != expected {
+				t.Fatalf("expecting: %s got %s", expected, simple)
+			}
+		}
+	}
+}
+
+func TestMssgRepeated(t *testing.T) {
+	tests := []struct {
+		mssg   []byte
+		index  int
+		values []string
+	}{
+		{[]byte("MSH|^~\\&|r1~r2|end"), 2, []string{"r1", "r2"}},
+		{[]byte("MSH|^~\\&|r1~r2"), 2, []string{"r1", "r2"}},
+		{[]byte("MSH|^~\\&|r1~"), 2, []string{"r1", ""}},
+	}
+
+	for _, v := range tests {
+		parser, err := gohl7.NewParser(v.mssg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		segments, err := parser.Parse()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(segments) == 0 {
+			t.Fatalf("unexpected empty segments\n")
+		}
+		field, ok := segments[0].Field(v.index)
+		if !ok {
+			t.Fatalf("repeated field does not exist at index %d of %s\n", v.index, v.mssg)
+		}
+		rep, ok := field.(*gohl7.Repeated)
+		if !ok {
+			t.Fatalf("expecting *gohl7.Repeated got: %T\n", field)
+		}
+		for index, expected := range v.values {
+			field, ok := rep.Field(index)
+			if !ok {
+				t.Fatalf("expecting simple field: %s at position %d\n", expected, index)
+			}
+
+			simple, ok := field.(*gohl7.SimpleField)
 			if simple.String() != expected {
 				t.Fatalf("expecting: %s got %s", expected, simple)
 			}

@@ -99,6 +99,8 @@ func (p *Parser) Parse() ([]*Segment, error) {
 			err = p.appendSegment(simple)
 		case p.encoding.Field:
 			err = p.appendField(simple)
+		case p.encoding.Repeated:
+			err = p.appendRepeated(simple)
 		case p.encoding.Component:
 			err = p.appendComponent(simple)
 		case p.encoding.Subcomponent:
@@ -131,6 +133,38 @@ func (p *Parser) appendSegment(last Hl7DataType) (err error) {
 
 func (p *Parser) appendField(value Hl7DataType) (err error) {
 
+	if p.rep != nil {
+
+		err = p.appendRepeated(value)
+		if err != nil {
+			return err
+		}
+		value = p.rep
+		p.rep = nil
+
+	} else {
+
+		if p.last == p.encoding.Component ||
+			p.last == p.encoding.Subcomponent {
+
+			err = p.appendComponent(value)
+			if err != nil {
+				return err
+			}
+
+			value = p.cmp
+			p.cmp = nil
+		}
+	}
+
+	if p.sgmt == nil {
+		p.sgmt = new(Segment)
+	}
+	return p.sgmt.AppendValue(value)
+}
+
+func (p *Parser) appendRepeated(value Hl7DataType) (err error) {
+
 	if p.last == p.encoding.Component ||
 		p.last == p.encoding.Subcomponent {
 
@@ -143,10 +177,11 @@ func (p *Parser) appendField(value Hl7DataType) (err error) {
 		p.cmp = nil
 	}
 
-	if p.sgmt == nil {
-		p.sgmt = new(Segment)
+	if p.rep == nil {
+		p.rep = new(Repeated)
 	}
-	return p.sgmt.AppendValue(value)
+
+	return p.rep.AppendValue(value)
 }
 
 func (p *Parser) appendComponent(value Hl7DataType) (err error) {
