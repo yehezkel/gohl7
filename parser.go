@@ -274,6 +274,10 @@ func(p *Parser) split(data []byte, atEOF bool) (advance int, token []byte, err e
 	if atEOF{
 		token = data
 		advance = len(data)
+
+		if advance == 0 {
+			err = io.EOF
+		}
 	}
 
 	if found{
