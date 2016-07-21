@@ -43,18 +43,16 @@ package gohl7
 //including a simple value between field separators
 //it returns the value contained at the index position by the HL7 field
 //or nil and false in case the position does not exists
-type Hl7DataType interface{
+type Hl7DataType interface {
 	Field(index int) (Hl7DataType, bool)
 }
-
 
 //The Hl7ComposedType is only implemented by the HL7 types that can actually
 //contain other data types inside them: Subcomponent, Component, Repeated and Segment.
 //It provides the functionality of appending a new value into them
 //the method may return a validation error, as an example when
 //a repeated type is been inserted inside a subcomponent data type
-type Hl7ComposedType interface{
+type Hl7ComposedType interface {
 	Hl7DataType
-	AppendValue(v Hl7DataType) (error)
+	AppendValue(v Hl7DataType) error
 }
-
