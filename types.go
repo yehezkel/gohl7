@@ -15,6 +15,10 @@ const (
 	Repeated
 	Component
 	SubComponent
+
+	//Segment is defined as Field type
+	//to help generalizing the implementation of message
+	Segment
 )
 
 type Field interface {
@@ -72,4 +76,19 @@ func (f *ComplexField) Push(child Field) (err error) {
 	f.children = append(f.children, child)
 
 	return
+}
+
+func IsSimpleField(f Field) bool {
+
+	return f.Type() == Simple
+}
+
+func IsComplexField(f Field) bool {
+
+	t := f.Type()
+
+	//TODO: not sure if Segment should be added here
+	return t == Component ||
+		t == Repeated ||
+		t == SubComponent
 }
