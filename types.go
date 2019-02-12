@@ -31,12 +31,15 @@ type ContainerField interface {
 	Push(Field) error
 }
 
-type validator interface {
-	ValidatePush(parent, child ContainerField) error
-}
-
 type SimpleField struct {
 	v []byte
+}
+
+func NewSimpleField(v []byte) *SimpleField {
+
+	return &SimpleField{
+		v: v,
+	}
 }
 
 func (v *SimpleField) Type() FieldType {
@@ -47,6 +50,14 @@ type ComplexField struct {
 	fieldType FieldType
 	children  []Field
 	validator func(Field, Field) error
+}
+
+func NewComplexField(t FieldType, v func(Field, Field) error) *ComplexField {
+
+	return &ComplexField{
+		fieldType: t,
+		validator: v,
+	}
 }
 
 func (f *ComplexField) Type() FieldType {
