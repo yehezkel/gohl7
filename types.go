@@ -103,3 +103,8 @@ func IsComplexField(f Field) bool {
 		t == Repeated ||
 		t == SubComponent
 }
+
+type Message struct {
+	raw []byte
+	*ComplexField
+}
