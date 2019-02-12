@@ -4,12 +4,6 @@ import (
 	"errors"
 )
 
-const (
-	HEADER_LABEL      = "MSH"
-	CR           byte = '\r'
-	NL           byte = '\n'
-)
-
 var (
 	errUnexpectedToken = errors.New("After Segment Header only field separator")
 	errMssgHeader      = errors.New("Invalid Message Header")

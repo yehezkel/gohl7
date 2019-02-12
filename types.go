@@ -106,5 +106,6 @@ func IsComplexField(f Field) bool {
 
 type Message struct {
 	raw []byte
+	//reusing the push pop logic for segments
 	*ComplexField
 }
