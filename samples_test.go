@@ -9,12 +9,12 @@ import (
 	"testing"
 )
 
-
 func TestSimpleMessage(t *testing.T) {
 
-	raw := []byte("MSH|^~\\&|aaa|bbbb")
+	raw := []byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456")
 
 	parser, err := NewHl7Parser(raw)
+
 	if err != nil {
 		log.Panic(err)
 	}
@@ -25,7 +25,5 @@ func TestSimpleMessage(t *testing.T) {
 		log.Panic(err)
 	}
 
-	log.Printf("%#v\n",msg)
+	log.Printf("%s\n", msg.ComplexField)
 }
-
-

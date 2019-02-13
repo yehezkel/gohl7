@@ -2,12 +2,14 @@ package gohl7
 
 import (
 	"errors"
+	//"log"
 )
 
 var (
-	ErrMssgHeader   = errors.New("Invalid Message Header")
-	ErrMssgEncoding = errors.New("Invalid message encoding field")
-	errNoMoreData   = errors.New("no more data")
+	ErrMssgHeader     = errors.New("Invalid Message Header")
+	ErrMssgEncoding   = errors.New("Invalid message encoding field")
+	ErrUnexpectedCase = errors.New("Unexpected case, implementation error")
+	errNoMoreData     = errors.New("no more data")
 )
 
 const (
@@ -38,7 +40,7 @@ func NewHl7Parser(source []byte) (*Hl7Parser, error) {
 		return nil, err
 	}
 
-	segments := NewComplexField(segment, SegmentValidator)
+	segments := NewComplexField(message, MessageValidator)
 
 	return &Hl7Parser{
 		enc: enc,
@@ -53,54 +55,74 @@ func NewHl7Parser(source []byte) (*Hl7Parser, error) {
 func (p *Hl7Parser) Parse() (*Message, error) {
 
 	mssg := p.mssg
+	currentSegment := NewComplexField(segment, SegmentValidator)
+
 	//manually adding header
-	err := mssg.Push(NewSimpleField(mssg.raw[:3]))
+	err := currentSegment.Push(NewSimpleField(mssg.raw[:3]))
 	if err != nil {
 		return nil, err
 	}
 
 	//manually adding encoding
-	err = mssg.Push(NewSimpleField(mssg.raw[4:8]))
+	err = currentSegment.Push(NewSimpleField(mssg.raw[4:8]))
 	if err != nil {
 		return nil, err
 	}
 
-	last := segment
+	//manually adding first segment to message
+	mssg.Push(currentSegment)
+
+	last := Simple
 	i, l := 9, len(mssg.raw)
 
-	for ; i < l;  {
+	for i < l {
 
-		nextF, consumed, err := next(mssg.raw[i:],p.enc)
+		nextF, consumed, err := next(mssg.raw[i:], p.enc)
+
 		if err != nil {
 
 			if err != errNoMoreData {
-				return nil, err	
+				return nil, err
 			}
 			//treat end of data as simple field
-			nextF = segment
-			
+			nextF = Simple
+
 		}
 
-		value := mssg.raw[i:i+consumed]
-		i = i + consumed
+		value := mssg.raw[i : i+consumed]
+
+		i = i + consumed + 1
 
 		switch {
-		case last == segment && nextF == segment:
-			err = mssg.Push(NewSimpleField(value))
+		case last == segment && nextF == Simple:
+			fallthrough
+		case last == Simple && nextF == Simple:
+			err = currentSegment.Push(NewSimpleField(value))
+		case last == Simple && nextF == segment:
+			//append last part of segment
+			err = currentSegment.Push(NewSimpleField(value))
+			//create new segment
+			currentSegment = NewComplexField(segment, SegmentValidator)
+			//add new segment to the message
+			mssg.Push(currentSegment)
+		default:
+			err = ErrUnexpectedCase
 		}
 
+		if err != nil {
+			return nil, err
+		}
+
+		last = nextF
 
 	}
 
-
-
-	return nil, nil
+	return mssg, nil
 }
 
 func next(source []byte, enc *Encoding) (FieldType, int, error) {
 
-	l,k := len(source),0
-
+	l, k := len(source), 0
 
 	for ; k < l; k++ {
 
