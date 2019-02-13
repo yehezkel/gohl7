@@ -16,10 +16,11 @@ const (
 	Component
 	SubComponent
 
-	//segment is defined as Field type
-	//to help generalizing the implementation of message
+	//segment and message are defined as Field type
+	//to help generalizing the implementation of the parser
 	//give that this not an actual field type its unexported
 	segment
+	message
 )
 
 type Field interface {

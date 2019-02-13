@@ -5,13 +5,22 @@ import (
 )
 
 var (
-	//ErrEmptyChildren = errors.New("No child to pop off")
+	ErrMessageChild      = errors.New("Invalid Message child")
 	ErrSegmentChild      = errors.New("Invalid Segment Child")
 	ErrInvalidSegmenId   = errors.New("Invalid Segment Id")
 	ErrRepeatedChild     = errors.New("Invalid Repeated Child")
 	ErrComponentChild    = errors.New("Invalid Component Child")
 	ErrSubComponentChild = errors.New("Invalid SubComponent Child")
 )
+
+func MessageValidator(parent, child Field) error {
+
+	if child.Type() != segment {
+		return ErrRepeatedChild
+	}
+
+	return nil
+}
 
 func SegmentValidator(parent, child Field) error {
 
