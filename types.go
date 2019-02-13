@@ -2,6 +2,7 @@ package gohl7
 
 import (
 	"errors"
+	"fmt"
 )
 
 var (
@@ -44,8 +45,12 @@ func NewSimpleField(v []byte) *SimpleField {
 	}
 }
 
-func (v *SimpleField) Type() FieldType {
+func (s *SimpleField) Type() FieldType {
 	return Simple
+}
+
+func (s *SimpleField) String() string {
+	return string(s.v)
 }
 
 type ComplexField struct {
@@ -82,16 +87,21 @@ func (f *ComplexField) Pop() (Field, error) {
 
 func (f *ComplexField) Push(child Field) (err error) {
 
-	if f.validator != nil{
+	if f.validator != nil {
 		err = f.validator(f, child)
-		if err != nil{
-			return err	
+		if err != nil {
+			return err
 		}
 	}
 
 	f.children = append(f.children, child)
 
 	return
+}
+
+func (f *ComplexField) String() string {
+
+	return fmt.Sprintf("Field Type :%#v Childrens: %s\n", f.fieldType, f.children)
 }
 
 func IsSimpleField(f Field) bool {
