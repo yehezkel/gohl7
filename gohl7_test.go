@@ -1,12 +1,12 @@
-package gohl7_test
+package gohl7
 
 import (
-	"bitbucket.org/yehezkel/gohl7"
+	//"bitbucket.org/yehezkel/gohl7"
 	//"fmt"
 	"testing"
 )
 
-func TestBadHeader(t *testing.T) {
+/*func TestBadHeader(t *testing.T) {
 	tests := []string{
 		"M||",
 		"||",
@@ -223,4 +223,4 @@ func TestMssgRepeated(t *testing.T) {
 			}
 		}
 	}
-}
+}*/

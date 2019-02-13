@@ -1,13 +1,13 @@
-package gohl7_test
+package gohl7
 
-import(
-	"bitbucket.org/yehezkel/gohl7"
+import (
+	//"bitbucket.org/yehezkel/gohl7"
 	"testing"
-	"io/ioutil"
-	"os"
+	//"io/ioutil"
+	//"os"
 )
 
-var(
+/*var(
 	file_path = "test.hl7"
 )
 
@@ -52,5 +52,4 @@ func BenchmarkLongMessage(b *testing.B){
 			b.Fatal(err)
 		}
 	}
-}
-
+}*/
