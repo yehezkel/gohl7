@@ -69,7 +69,7 @@ func next(source []byte, enc *Encoding) (FieldType, int, err) {
 		case enc.Component:
 			return Subcomponent, k, nil
 		case CR:
-			return Segment, k, nil
+			return segment, k, nil
 		case enc.Escaping:
 			//continue
 			k++
