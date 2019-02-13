@@ -69,9 +69,6 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		return nil, err
 	}
 
-	//manually adding first segment to message
-	mssg.Push(currentSegment)
-
 	last := Simple
 	i, l := 9, len(mssg.raw)
 
@@ -84,8 +81,8 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			if err != errNoMoreData {
 				return nil, err
 			}
-			//treat end of data as simple field
-			nextF = Simple
+			//treat end of data as segment
+			nextF = segment
 
 		}
 
@@ -101,10 +98,13 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == Simple && nextF == segment:
 			//append last part of segment
 			err = currentSegment.Push(NewSimpleField(value))
+			//add current segment to the message
+			mssg.Push(currentSegment)
 			//create new segment
 			currentSegment = NewComplexField(segment, SegmentValidator)
-			//add new segment to the message
-			mssg.Push(currentSegment)
+		//special case for CR+EndOfData
+		case last == segment && nextF == segment:
+			//noop
 		default:
 			err = ErrUnexpectedCase
 		}
