@@ -7,6 +7,7 @@ import (
 var (
 	ErrMssgHeader   = errors.New("Invalid Message Header")
 	ErrMssgEncoding = errors.New("Invalid message encoding field")
+	errNoMoreData   = errors.New("no more data")
 )
 
 const (
@@ -49,4 +50,31 @@ func NewHl7Parser(source []byte) (*Hl7Parser, error) {
 func (p *Hl7Parser) Parse() (Message, error) {
 
 	return nil, nil
+}
+
+func next(source []byte, enc *Encoding) (FieldType, int, err) {
+
+	l := len(source)
+
+	for k = 0; k < l; k++ {
+
+		v = source[k]
+		switch v {
+		case enc.Field:
+			return Simple, k, nil
+		case enc.Component:
+			return Component, k, nil
+		case enc.Repeated:
+			return Component, k, nil
+		case enc.Component:
+			return Subcomponent, k, nil
+		case CR:
+			return Segment, k, nil
+		case enc.Escaping:
+			//continue
+			k++
+		}
+	}
+
+	return 0, k + 1, errNoMoreData
 }
