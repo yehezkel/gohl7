@@ -11,7 +11,7 @@ var (
 type FieldType byte
 
 const (
-	FieldType Simple = iota
+	Simple FieldType = iota
 	Repeated
 	Component
 	SubComponent
@@ -73,7 +73,7 @@ func (f *ComplexField) Pop() (Field, error) {
 		return nil, ErrEmptyChildren
 	}
 
-	last = f.children[l]
+	last := f.children[l]
 	f.children = f.children[:l]
 
 	return last, nil
@@ -81,8 +81,11 @@ func (f *ComplexField) Pop() (Field, error) {
 
 func (f *ComplexField) Push(child Field) (err error) {
 
-	if f.validator != nil && err = f.validator(f, child); err {
-		return err
+	if f.validator != nil{
+		err = f.validator(f, child)
+		if err != nil{
+			return err	
+		}
 	}
 
 	f.children = append(f.children, child)

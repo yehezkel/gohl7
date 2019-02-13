@@ -1,6 +1,6 @@
 package gohl7
 
-import (
+/*import (
 	"errors"
 )
 
@@ -161,4 +161,4 @@ func (s *Segment) AppendValue(v Hl7DataType) (err error) {
 	s.fields = append(s.fields, v)
 
 	return
-}
+}*/

@@ -1,6 +1,6 @@
 package gohl7
 
-import (
+/*import (
 	"errors"
 )
 
@@ -274,3 +274,4 @@ OuterLoop:
 	p.current = found
 	return token, nil
 }
+*/

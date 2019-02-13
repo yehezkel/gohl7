@@ -30,7 +30,7 @@ func ParseEncoding(buffer []byte) (*Encoding, error) {
 		Component:    buffer[1],
 		Repeated:     buffer[2],
 		Escaping:     buffer[3],
-		Subcomponent: buffer[5],
+		Subcomponent: buffer[4],
 	}
 
 	//checking for duplicates
@@ -48,7 +48,7 @@ func ParseEncoding(buffer []byte) (*Encoding, error) {
 
 }
 
-func newEncoding(buffer []byte) (*Encoding, int, error) {
+/*func newEncoding(buffer []byte) (*Encoding, int, error) {
 
 	l, i := len(buffer), 0
 
@@ -161,4 +161,4 @@ func (enc *Encoding) IsToken(b byte) bool {
 		b == enc.Subcomponent ||
 		b == CR ||
 		b == NL)
-}
+}*/

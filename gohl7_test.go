@@ -3,8 +3,8 @@ package gohl7
 import (
 	//"bitbucket.org/yehezkel/gohl7"
 	//"fmt"
-	"testing"
 )
+
 
 /*func TestBadHeader(t *testing.T) {
 	tests := []string{

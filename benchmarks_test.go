@@ -2,7 +2,7 @@ package gohl7
 
 import (
 	//"bitbucket.org/yehezkel/gohl7"
-	"testing"
+	//"testing"
 	//"io/ioutil"
 	//"os"
 )
