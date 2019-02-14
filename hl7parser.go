@@ -117,9 +117,9 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == Component && nextF == Simple:
 			fallthrough
 		case last == Component && nextF == Component:
-			err = pushToLastComplexField(currentSegment, NewSimpleField(value))
+			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
 		case last == Component && nextF == segment:
-			err = pushToLastComplexField(currentSegment, NewSimpleField(value))
+			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
 			//add current segment to the message
 			mssg.Push(currentSegment)
 			//create new segment
@@ -173,7 +173,7 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 //Given a complex field append a new child to its last child
 //in other word: add a grandchild
 //in other words: push child to last child
-func pushToLastComplexField(parent *ComplexField, newChild Field) error {
+func pushChildToLastChild(parent *ComplexField, newChild Field) error {
 
 	lastField, err := parent.Pop()
 	if err != nil {
