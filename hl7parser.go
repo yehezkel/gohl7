@@ -92,9 +92,12 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 		switch {
 		case last == segment && nextF == Simple:
+			//segment header case
 			fallthrough
+
 		case last == Simple && nextF == Simple:
 			err = currentSegment.Push(NewSimpleField(value))
+
 		case last == Simple && nextF == segment:
 			//append last part of segment
 			err = currentSegment.Push(NewSimpleField(value))
@@ -102,8 +105,28 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			mssg.Push(currentSegment)
 			//create new segment
 			currentSegment = NewComplexField(segment, SegmentValidator)
-		//special case for CR+EndOfData
+
+		case last == Simple && nextF == Component:
+			//create complex field component
+			complexF := NewComplexField(Component, ComponentValidator)
+			//append simple field
+			err = complexF.Push(NewSimpleField(value))
+			//push component into segment
+			currentSegment.Push(complexF)
+
+		case last == Component && nextF == Simple:
+			fallthrough
+		case last == Component && nextF == Component:
+			err = pushToLastComplexField(currentSegment, NewSimpleField(value))
+		case last == Component && nextF == segment:
+			err = pushToLastComplexField(currentSegment, NewSimpleField(value))
+			//add current segment to the message
+			mssg.Push(currentSegment)
+			//create new segment
+			currentSegment = NewComplexField(segment, SegmentValidator)
+
 		case last == segment && nextF == segment:
+			//special case for CR+EndOfData
 			//noop
 		default:
 			err = ErrUnexpectedCase
@@ -145,4 +168,30 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 	}
 
 	return 0, k + 1, errNoMoreData
+}
+
+//Given a complex field append a new child to its last child
+//in other word: add a grandchild
+//in other words: push child to last child
+func pushToLastComplexField(parent *ComplexField, newChild Field) error {
+
+	lastField, err := parent.Pop()
+	if err != nil {
+		return err
+	}
+
+	//converting last field back to *ComplexField
+	complexF, ok := lastField.(*ComplexField)
+	if !ok {
+		return ErrUnexpectedCase
+	}
+
+	//push new child
+	err = complexF.Push(newChild)
+	if err != nil {
+		return err
+	}
+
+	//push back the last complex field
+	return parent.Push(complexF)
 }
