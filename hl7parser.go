@@ -188,15 +188,9 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 //in other words: push child to last child
 func pushChildToLastChild(parent *ComplexField, newChild Field) error {
 
-	lastField, err := parent.Pop()
+	complexF, err := popLastComplexChild(parent)
 	if err != nil {
 		return err
-	}
-
-	//converting last field back to *ComplexField
-	complexF, ok := lastField.(*ComplexField)
-	if !ok {
-		return ErrUnexpectedCase
 	}
 
 	//push new child
@@ -207,4 +201,21 @@ func pushChildToLastChild(parent *ComplexField, newChild Field) error {
 
 	//push back the last complex field
 	return parent.Push(complexF)
+}
+
+func popLastComplexChild (parent *ComplexField) (*ComplexField,error) {
+
+	lastField, err := parent.Pop()
+	if err != nil {
+		return nil, err
+	}
+
+	//converting last field back to *ComplexField
+	complexF, ok := lastField.(*ComplexField)
+	if !ok {
+		return nil, ErrUnexpectedCase
+	}
+
+	return complexF, nil
+
 }
