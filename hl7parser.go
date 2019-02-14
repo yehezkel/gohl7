@@ -109,10 +109,23 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == Simple && nextF == Component:
 			//create complex field component
 			complexF := NewComplexField(Component, ComponentValidator)
-			//append simple field
-			err = complexF.Push(NewSimpleField(value))
 			//push component into segment
 			currentSegment.Push(complexF)
+			//append simple field
+			complexF.Push(NewSimpleField(value))
+
+		case last == Simple && nextF == SubComponent:
+
+			//create complex field component
+			componentF := NewComplexField(Component, ComponentValidator)
+			//push component into segment
+			currentSegment.Push(componentF)
+			//create comples field subcomponent
+			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
+			//push subcomponent into component
+			componentF.Push(subcomponentF)
+			//push simple field into subcomponent
+			subcomponentF.Push(NewSimpleField(value))
 
 		case last == Component && nextF == Simple:
 			fallthrough
