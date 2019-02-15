@@ -114,18 +114,38 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//append simple field
 			complexF.Push(NewSimpleField(value))
 
+		case last == Simple && nextF == Repeated:
+
+			//create complex field component
+			complexF := NewComplexField(Repeated, RepeatedValidator)
+			//push repeated into segment
+			currentSegment.Push(complexF)
+			//append simple field
+			complexF.Push(NewSimpleField(value))
+
 		case last == Simple && nextF == SubComponent:
 
 			//create complex field component
 			componentF := NewComplexField(Component, ComponentValidator)
 			//push component into segment
 			currentSegment.Push(componentF)
-			//create comples field subcomponent
+			//create complex field subcomponent
 			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
 			//push subcomponent into component
 			componentF.Push(subcomponentF)
 			//push simple field into subcomponent
 			subcomponentF.Push(NewSimpleField(value))
+
+		case last == Repeated && nextF == Simple:
+			fallthrough
+		case last == Repeated && nextF == Repeated:
+			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
+		case last == Repeated && nextF == segment:
+			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
+			//add current segment to the message
+			mssg.Push(currentSegment)
+			//create new segment
+			currentSegment = NewComplexField(segment, SegmentValidator)
 
 		case last == Component && nextF == Simple:
 			fallthrough
@@ -169,8 +189,8 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 		case enc.Component:
 			return Component, k, nil
 		case enc.Repeated:
-			return Component, k, nil
-		case enc.Component:
+			return Repeated, k, nil
+		case enc.Subcomponent:
 			return SubComponent, k, nil
 		case CR:
 			return segment, k, nil
@@ -203,7 +223,7 @@ func pushChildToLastChild(parent *ComplexField, newChild Field) error {
 	return parent.Push(complexF)
 }
 
-func popLastComplexChild (parent *ComplexField) (*ComplexField,error) {
+func popLastComplexChild(parent *ComplexField) (*ComplexField, error) {
 
 	lastField, err := parent.Pop()
 	if err != nil {

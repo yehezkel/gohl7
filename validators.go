@@ -59,7 +59,9 @@ func ComponentValidator(parent, child Field) error {
 
 func RepeatedValidator(parent, child Field) error {
 
-	if child.Type() != Component {
+	t := child.Type()
+
+	if t != Component && t != Simple {
 		return ErrRepeatedChild
 	}
 
