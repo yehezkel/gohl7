@@ -200,7 +200,7 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 		}
 	}
 
-	return 0, k + 1, errNoMoreData
+	return 0, k, errNoMoreData
 }
 
 //Given a complex field append a new child to its last child
