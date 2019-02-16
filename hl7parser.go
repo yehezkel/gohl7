@@ -146,17 +146,35 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			mssg.Push(currentSegment)
 			//create new segment
 			currentSegment = NewComplexField(segment, SegmentValidator)
+		case last == Repeated && nextF == Component:
 
+			complexF := NewComplexField(Component, ComponentValidator)
+			err = complexF.Push(NewSimpleField(value))
+			err = pushChildToLastChild(currentSegment, complexF)
+
+		case last == Component && nextF == segment:
+			fallthrough
 		case last == Component && nextF == Simple:
 			fallthrough
 		case last == Component && nextF == Component:
-			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
-		case last == Component && nextF == segment:
-			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
-			//add current segment to the message
-			mssg.Push(currentSegment)
-			//create new segment
-			currentSegment = NewComplexField(segment, SegmentValidator)
+
+			var complexF *ComplexField
+			complexF, err = popLastComplexChild(currentSegment)
+			repeatedParent := (complexF.Type() == Repeated)
+			currentSegment.Push(complexF)
+
+			if repeatedParent {
+				err = pushChildToLastChild(complexF, NewSimpleField(value))
+			} else {
+				err = pushChildToLastChild(currentSegment, NewSimpleField(value))
+			}
+
+			if nextF == segment {
+				//add current segment to the message
+				mssg.Push(currentSegment)
+				//create new segment
+				currentSegment = NewComplexField(segment, SegmentValidator)
+			}
 
 		case last == segment && nextF == segment:
 			//special case for CR+EndOfData
