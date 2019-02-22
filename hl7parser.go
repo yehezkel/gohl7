@@ -156,6 +156,21 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			err = complexF.Push(NewSimpleField(value))
 			err = pushChildToLastChild(currentSegment, complexF)
 
+        case last == Repeated && nextF == SubComponent:
+
+            //create complex field component
+            componentF := NewComplexField(Component, ComponentValidator)
+            //create complex field subcomponent
+            subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
+            //push subcomponent into component
+            componentF.Push(subcomponentF)
+            //push simple field into subcomponent
+            subcomponentF.Push(NewSimpleField(value))
+
+            //push new component into Repeated field
+            err = pushChildToLastChild(currentSegment, componentF)
+
+
 		case last == Component && nextF == segment:
 			fallthrough
 		case last == Component && nextF == Simple:
