@@ -238,17 +238,17 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				repeatedF.Push(complexF)
 
 				//push repeated field to segment
-				currentSegment.Push(repeated)
+				currentSegment.Push(repeatedF)
 
 			}
 			//push to component the simple field
 			complexF.Push(NewSimpleField(value))
 
-		case last == SubComponent && nexfF == Simple:
+		case last == SubComponent && nextF == Simple:
 			fallthrough
-		case last == SubComponent && nexfF == Component:
+		case last == SubComponent && nextF == Component:
 			fallthrough
-		case last == SubComponent && nexfF == SubComponent:
+		case last == SubComponent && nextF == SubComponent:
 			fallthrough
 		case last == SubComponent && nextF == segment:
 
@@ -274,7 +274,7 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				currentSegment = NewComplexField(segment, SegmentValidator)
 			}
 
-		case last == Subcomponent && nextF == Repeated:
+		case last == SubComponent && nextF == Repeated:
 
 			var complexF *ComplexField
 
@@ -295,7 +295,7 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				repeatedF.Push(complexF)
 
 				//push repeated field to segment
-				currentSegment.Push(repeated)
+				currentSegment.Push(repeatedF)
 			}
 
 			//complexF should reference the current component
