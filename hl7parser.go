@@ -156,20 +156,19 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			err = complexF.Push(NewSimpleField(value))
 			err = pushChildToLastChild(currentSegment, complexF)
 
-        case last == Repeated && nextF == SubComponent:
+		case last == Repeated && nextF == SubComponent:
 
-            //create complex field component
-            componentF := NewComplexField(Component, ComponentValidator)
-            //create complex field subcomponent
-            subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
-            //push subcomponent into component
-            componentF.Push(subcomponentF)
-            //push simple field into subcomponent
-            subcomponentF.Push(NewSimpleField(value))
+			//create complex field component
+			componentF := NewComplexField(Component, ComponentValidator)
+			//create complex field subcomponent
+			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
+			//push subcomponent into component
+			componentF.Push(subcomponentF)
+			//push simple field into subcomponent
+			subcomponentF.Push(NewSimpleField(value))
 
-            //push new component into Repeated field
-            err = pushChildToLastChild(currentSegment, componentF)
-
+			//push new component into Repeated field
+			err = pushChildToLastChild(currentSegment, componentF)
 
 		case last == Component && nextF == segment:
 			fallthrough
@@ -194,6 +193,113 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				//create new segment
 				currentSegment = NewComplexField(segment, SegmentValidator)
 			}
+		case last == Component && nextF == SubComponent:
+			//| ~ ^ ^ &
+			var complexF *ComplexField
+
+			complexF, err = popLastComplexChild(currentSegment)
+			repeatedParent := (complexF.Type() == Repeated)
+			currentSegment.Push(complexF)
+
+			if repeatedParent {
+				//then the last child has to be the component
+				complexF, err = popLastComplexChild(complexF)
+				pushChildToLastChild(currentSegment, complexF)
+			}
+
+			//complex should reference the current component
+
+			//create complex field subcomponent
+			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
+			//push subcomponent into component
+			complexF.Push(subcomponentF)
+			//push simple field into subcomponent
+			subcomponentF.Push(NewSimpleField(value))
+
+		case last == Component && nextF == Repeated:
+
+			var complexF *ComplexField
+
+			complexF, err = popLastComplexChild(currentSegment)
+
+			//already a repeated field
+			if complexF.Type() == Repeated {
+				//put it back
+				currentSegment.Push(complexF)
+				//then its last child has to be the component
+				complexF, err = popLastComplexChild(complexF)
+				//put it back
+				pushChildToLastChild(currentSegment, complexF)
+
+			} else {
+				//build a new repeated field
+				repeatedF := NewComplexField(Repeated, RepeatedValidator)
+				//push existing component to it
+				repeatedF.Push(complexF)
+
+				//push repeated field to segment
+				currentSegment.Push(repeated)
+
+			}
+			//push to component the simple field
+			complexF.Push(NewSimpleField(value))
+
+		case last == SubComponent && nexfF == Simple:
+			fallthrough
+		case last == SubComponent && nexfF == Component:
+			fallthrough
+		case last == SubComponent && nexfF == SubComponent:
+			fallthrough
+		case last == SubComponent && nextF == segment:
+
+			var complexF *ComplexField
+
+			complexF, err = popLastComplexChild(currentSegment)
+			repeatedParent := (complexF.Type() == Repeated)
+			currentSegment.Push(complexF)
+
+			if repeatedParent {
+				//then the last child has to be the component
+				complexF, err = popLastComplexChild(complexF)
+				pushChildToLastChild(currentSegment, complexF)
+			}
+
+			//complexF should reference the current component
+			pushChildToLastChild(complexF, NewSimpleField(value))
+
+			if last == segment {
+				//add current segment to the message
+				mssg.Push(currentSegment)
+				//create new segment
+				currentSegment = NewComplexField(segment, SegmentValidator)
+			}
+
+		case last == Subcomponent && nextF == Repeated:
+
+			var complexF *ComplexField
+
+			complexF, err = popLastComplexChild(currentSegment)
+			repeatedParent := (complexF.Type() == Repeated)
+			currentSegment.Push(complexF)
+
+			//already on repeated field
+			if repeatedParent {
+				//then the last child has to be the component
+				complexF, err = popLastComplexChild(complexF)
+				pushChildToLastChild(currentSegment, complexF)
+
+			} else {
+				//build a new repeated field
+				repeatedF := NewComplexField(Repeated, RepeatedValidator)
+				//push existing component to it
+				repeatedF.Push(complexF)
+
+				//push repeated field to segment
+				currentSegment.Push(repeated)
+			}
+
+			//complexF should reference the current component
+			pushChildToLastChild(complexF, NewSimpleField(value))
 
 		case last == segment && nextF == segment:
 			//special case for CR+EndOfData
