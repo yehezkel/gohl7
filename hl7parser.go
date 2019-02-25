@@ -177,9 +177,8 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == Component && nextF == Component:
 
 			var complexF *ComplexField
-			complexF, err = popLastComplexChild(currentSegment)
+			complexF, err = getLastComplexChild(currentSegment)
 			repeatedParent := (complexF.Type() == Repeated)
-			currentSegment.Push(complexF)
 
 			if repeatedParent {
 				err = pushChildToLastChild(complexF, NewSimpleField(value))
@@ -197,14 +196,12 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//| ~ ^ ^ &
 			var complexF *ComplexField
 
-			complexF, err = popLastComplexChild(currentSegment)
+			complexF, err = getLastComplexChild(currentSegment)
 			repeatedParent := (complexF.Type() == Repeated)
-			currentSegment.Push(complexF)
 
 			if repeatedParent {
 				//then the last child has to be the component
-				complexF, err = popLastComplexChild(complexF)
-				pushChildToLastChild(currentSegment, complexF)
+				complexF, err = getLastComplexChild(complexF)
 			}
 
 			//complex should reference the current component
@@ -227,9 +224,7 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				//put it back
 				currentSegment.Push(complexF)
 				//then its last child has to be the component
-				complexF, err = popLastComplexChild(complexF)
-				//put it back
-				pushChildToLastChild(currentSegment, complexF)
+				complexF, err = getLastComplexChild(complexF)
 
 			} else {
 				//build a new repeated field
@@ -254,14 +249,12 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 			var complexF *ComplexField
 
-			complexF, err = popLastComplexChild(currentSegment)
+			complexF, err = getLastComplexChild(currentSegment)
 			repeatedParent := (complexF.Type() == Repeated)
-			currentSegment.Push(complexF)
 
 			if repeatedParent {
 				//then the last child has to be the component
-				complexF, err = popLastComplexChild(complexF)
-				pushChildToLastChild(currentSegment, complexF)
+				complexF, err = getLastComplexChild(complexF)
 			}
 
 			//complexF should reference the current component
@@ -278,15 +271,13 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 			var complexF *ComplexField
 
-			complexF, err = popLastComplexChild(currentSegment)
+			complexF, err = getLastComplexChild(currentSegment)
 			repeatedParent := (complexF.Type() == Repeated)
-			currentSegment.Push(complexF)
 
 			//already on repeated field
 			if repeatedParent {
 				//then the last child has to be the component
-				complexF, err = popLastComplexChild(complexF)
-				pushChildToLastChild(currentSegment, complexF)
+				complexF, err = getLastComplexChild(complexF)
 
 			} else {
 				//build a new repeated field
@@ -351,19 +342,13 @@ func next(source []byte, enc *Encoding) (FieldType, int, error) {
 //in other words: push child to last child
 func pushChildToLastChild(parent *ComplexField, newChild Field) error {
 
-	complexF, err := popLastComplexChild(parent)
+	complexF, err := getLastComplexChild(parent)
 	if err != nil {
 		return err
 	}
 
 	//push new child
-	err = complexF.Push(newChild)
-	if err != nil {
-		return err
-	}
-
-	//push back the last complex field
-	return parent.Push(complexF)
+	return complexF.Push(newChild)
 }
 
 func popLastComplexChild(parent *ComplexField) (*ComplexField, error) {
@@ -381,4 +366,17 @@ func popLastComplexChild(parent *ComplexField) (*ComplexField, error) {
 
 	return complexF, nil
 
+}
+
+//getLastComplexChild get the reference of the last complex child. helper function
+func getLastComplexChild(parent *ComplexField) (*ComplexField, error) {
+
+	//pop the child
+	child, err := popLastComplexChild(parent)
+	if err != nil {
+		return child, err
+	}
+
+	//push the child back
+	return child, parent.Push(child)
 }
