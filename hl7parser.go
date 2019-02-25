@@ -134,8 +134,10 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 		case last == Repeated && nextF == segment:
 			fallthrough
+
 		case last == Repeated && nextF == Simple:
 			fallthrough
+
 		case last == Repeated && nextF == Repeated:
 			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
 
@@ -161,8 +163,10 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 		case last == Component && nextF == segment:
 			fallthrough
+
 		case last == Component && nextF == Simple:
 			fallthrough
+
 		case last == Component && nextF == Component:
 
 			var complexF *ComplexField
@@ -224,10 +228,13 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 		case last == SubComponent && nextF == Simple:
 			fallthrough
+
 		case last == SubComponent && nextF == Component:
 			fallthrough
+
 		case last == SubComponent && nextF == SubComponent:
 			fallthrough
+
 		case last == SubComponent && nextF == segment:
 
 			var complexF *ComplexField
