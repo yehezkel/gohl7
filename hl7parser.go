@@ -96,15 +96,11 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			fallthrough
 
 		case last == Simple && nextF == Simple:
-			err = currentSegment.Push(NewSimpleField(value))
+			fallthrough
 
 		case last == Simple && nextF == segment:
 			//append last part of segment
 			err = currentSegment.Push(NewSimpleField(value))
-			//add current segment to the message
-			mssg.Push(currentSegment)
-			//create new segment
-			currentSegment = NewComplexField(segment, SegmentValidator)
 
 		case last == Simple && nextF == Component:
 			//create complex field component
@@ -143,13 +139,6 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == Repeated && nextF == Repeated:
 			err = pushChildToLastChild(currentSegment, NewSimpleField(value))
 
-			if nextF == segment {
-				//add current segment to the message
-				mssg.Push(currentSegment)
-				//create new segment
-				currentSegment = NewComplexField(segment, SegmentValidator)
-			}
-
 		case last == Repeated && nextF == Component:
 
 			complexF := NewComplexField(Component, ComponentValidator)
@@ -186,12 +175,6 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				err = pushChildToLastChild(currentSegment, NewSimpleField(value))
 			}
 
-			if nextF == segment {
-				//add current segment to the message
-				mssg.Push(currentSegment)
-				//create new segment
-				currentSegment = NewComplexField(segment, SegmentValidator)
-			}
 		case last == Component && nextF == SubComponent:
 			//| ~ ^ ^ &
 			var complexF *ComplexField
@@ -260,13 +243,6 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//complexF should reference the current component
 			pushChildToLastChild(complexF, NewSimpleField(value))
 
-			if last == segment {
-				//add current segment to the message
-				mssg.Push(currentSegment)
-				//create new segment
-				currentSegment = NewComplexField(segment, SegmentValidator)
-			}
-
 		case last == SubComponent && nextF == Repeated:
 
 			var complexF *ComplexField
@@ -297,6 +273,15 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//noop
 		default:
 			err = ErrUnexpectedCase
+		}
+
+		//case to handle new segments, excluding special case above.
+		if err == nil && nextF == segment && last != segment {
+
+			//add current segment to the message
+			err = mssg.Push(currentSegment)
+			//create new segment
+			currentSegment = NewComplexField(segment, SegmentValidator)
 		}
 
 		if err != nil {
