@@ -13,14 +13,14 @@ func TestSimpleMessage(t *testing.T) {
 
 	raw := []byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456")
 
-    build := newComplexFieldWithChild(
+    build := newComplexFieldWithChildren(
         message, MessageValidator,
 
-        newComplexFieldWithChild(segment,SegmentValidator,
+        newComplexFieldWithChildren(segment,SegmentValidator,
             newSimpleStr("MSH"),newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
         ),
 
-        newComplexFieldWithChild(segment,SegmentValidator,
+        newComplexFieldWithChildren(segment,SegmentValidator,
             newSimpleStr("TMP"),newSimpleStr("123"), newSimpleStr("456"),
         ),
     )

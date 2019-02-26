@@ -18,10 +18,10 @@ func newSimpleStr(s string) *SimpleField {
 }
 
 
-// function newComplexFieldWithChild is an internal utility function
+// function newComplexFieldWithChildren is an internal utility function
 // mostly for testing
 //error code is ignore on purpose as its assume the call is internal
-func newComplexFieldWithChild(t FieldType, v func(Field, Field) error, children ...Field) *ComplexField {
+func newComplexFieldWithChildren(t FieldType, v func(Field, Field) error, children ...Field) *ComplexField {
 
     complexF := NewComplexField(t,v)
 
