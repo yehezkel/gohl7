@@ -3,10 +3,11 @@ package gohl7
 import (
 	//"bitbucket.org/yehezkel/gohl7"
 	//"fmt"
+	"testing"
 )
 
 
-/*func TestBadHeader(t *testing.T) {
+func TestBadHeader(t *testing.T) {
 	tests := []string{
 		"M||",
 		"||",
@@ -15,14 +16,49 @@ import (
 	}
 
 	for _, v := range tests {
-		_, err := gohl7.NewParser([]byte(v))
+		_, err := NewHl7Parser([]byte(v))
 		if err == nil {
 			t.Fatalf("Expecting error with header %s\n", v)
 		}
 	}
 }
 
-func TestSample(t *testing.T) {
+func TestSimpleFieldMessage(t *testing.T) {
+
+	raw := []byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456")
+
+    build := newComplexFieldWithChildren(
+        message, MessageValidator,
+
+        newComplexFieldWithChildren(segment,SegmentValidator,
+            newSimpleStr("MSH"),newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
+        ),
+
+        newComplexFieldWithChildren(segment,SegmentValidator,
+            newSimpleStr("TMP"),newSimpleStr("123"), newSimpleStr("456"),
+        ),
+    )
+
+	parser, err := NewHl7Parser(raw)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg, err := parser.Parse()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+    err = deepEqual(msg.ComplexField,build)
+    if err != nil {
+        t.Fatal(err)
+    }
+}
+
+
+/*func TestSample(t *testing.T) {
 	data := []byte("MSH|^~\\&||bbbb\\||c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
 	parser, err := gohl7.NewParser(data)
 
