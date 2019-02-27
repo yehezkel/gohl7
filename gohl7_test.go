@@ -151,6 +151,80 @@ func TestRepeatedFieldSimple(t *testing.T) {
 
 }
 
+func TestComponentFieldSimple(t *testing.T) {
+
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&|^\r"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr(""), newSimpleStr(""),
+					),
+				),
+			),
+		},
+		{
+			[]byte("MSH|^~\\&|aaa^aaa1|bbb1^bbb2^^bbb3\rTMP|ddd1^|^ddd2|^"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr("aaa"), newSimpleStr("aaa1"),
+					),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr("bbb1"), newSimpleStr("bbb2"), newSimpleStr(""), newSimpleStr("bbb3"),
+					),
+				),
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("TMP"),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr("ddd1"), newSimpleStr(""),
+					),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr(""), newSimpleStr("ddd2"),
+					),
+
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr(""), newSimpleStr(""),
+					),
+				),
+			),
+		},
+	}
+
+	for _, test := range table {
+
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
 /*func TestSample(t *testing.T) {
 	data := []byte("MSH|^~\\&||bbbb\\||c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
 	parser, err := gohl7.NewParser(data)
