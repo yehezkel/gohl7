@@ -112,18 +112,22 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//create complex field component
 			complexF := NewComplexField(Component, ComponentValidator)
 			//push component into segment
-			currentSegment.Push(complexF)
+			err = currentSegment.Push(complexF)
 			//append simple field
-			complexF.Push(NewSimpleField(value))
+			if err == nil {
+				complexF.Push(NewSimpleField(value))
+			}
 
 		case last == Simple && nextF == Repeated:
 
 			//create complex field component
 			complexF := NewComplexField(Repeated, RepeatedValidator)
 			//push repeated into segment
-			currentSegment.Push(complexF)
+			err = currentSegment.Push(complexF)
 			//append simple field
-			complexF.Push(NewSimpleField(value))
+			if err == nil {
+				complexF.Push(NewSimpleField(value))
+			}
 
 		case last == Simple && nextF == SubComponent:
 
