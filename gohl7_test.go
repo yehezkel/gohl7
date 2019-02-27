@@ -259,7 +259,7 @@ func TestSubComponentFieldSimple(t *testing.T) {
 						),
 					),
 					newComplexFieldWithChildren(Component, ComponentValidator,
-						newComplexFieldWithChildren(SubComponent, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
 							newSimpleStr("bbb1"), newSimpleStr("bbb2"), newSimpleStr(""), newSimpleStr("bbb3"),
 						),
 					),
@@ -268,19 +268,268 @@ func TestSubComponentFieldSimple(t *testing.T) {
 				newComplexFieldWithChildren(segment, SegmentValidator,
 					newSimpleStr("TMP"),
 					newComplexFieldWithChildren(Component, ComponentValidator,
-						newComplexFieldWithChildren(SubComponent, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
 							newSimpleStr("ddd1"), newSimpleStr(""),
 						),
 					),
 					newComplexFieldWithChildren(Component, ComponentValidator,
-						newComplexFieldWithChildren(SubComponent, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
 							newSimpleStr(""), newSimpleStr("ddd2"),
 						),
 					),
 
 					newComplexFieldWithChildren(Component, ComponentValidator,
-						newComplexFieldWithChildren(SubComponent, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
 							newSimpleStr(""), newSimpleStr(""),
+						),
+					),
+				),
+			),
+		},
+	}
+
+	for _, test := range table {
+
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
+func TestRepeatedComponentField(t *testing.T) {
+
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&|^~^"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr(""), newSimpleStr(""),
+						),
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr(""), newSimpleStr(""),
+						),
+					),
+				),
+			),
+		},
+		{
+			[]byte("MSH|^~\\&|aaa1^aaa2~bbb1^bbb2~|~ddd1^ddd2|eee1~^eee2|fff1^~\r"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr("aaa1"), newSimpleStr("aaa2"),
+						),
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr("bbb1"), newSimpleStr("bbb2"),
+						),
+						newSimpleStr(""),
+					),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr(""),
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr("ddd1"), newSimpleStr("ddd2"),
+						),
+					),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr("eee1"),
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr(""), newSimpleStr("eee2"),
+						),
+					),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newSimpleStr("fff1"), newSimpleStr(""),
+						),
+						newSimpleStr(""),
+					),
+				),
+			),
+		},
+	}
+
+	for _, test := range table {
+
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
+func TestComponentSubComponentField(t *testing.T) {
+
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&|&^&"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr(""), newSimpleStr(""),
+						),
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr(""), newSimpleStr(""),
+						),
+					),
+				),
+			),
+		},
+		{
+			[]byte("MSH|^~\\&|aaa1&aaa2^bbb1&bbb2^|^ddd1&ddd2|eee1^&eee2|fff1&^\r"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr("aaa1"), newSimpleStr("aaa2"),
+						),
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr("bbb1"), newSimpleStr("bbb2"),
+						),
+						newSimpleStr(""),
+					),
+
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr(""),
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr("ddd1"), newSimpleStr("ddd2"),
+						),
+					),
+
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newSimpleStr("eee1"),
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr(""), newSimpleStr("eee2"),
+						),
+					),
+
+					newComplexFieldWithChildren(Component, ComponentValidator,
+						newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+							newSimpleStr("fff1"), newSimpleStr(""),
+						),
+						newSimpleStr(""),
+					),
+				),
+			),
+		},
+	}
+
+	for _, test := range table {
+
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+}
+
+func TestRepeatedSubComponentField(t *testing.T) {
+
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&|a1&a2~\r"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+								newSimpleStr("a1"), newSimpleStr("a2"),
+							),
+						),
+						newSimpleStr(""),
+					),
+				),
+			),
+		},
+		{
+			[]byte("MSH|^~\\&|~a1&a2\r"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr(""),
+						newComplexFieldWithChildren(Component, ComponentValidator,
+							newComplexFieldWithChildren(SubComponent, SubComponentValidator,
+								newSimpleStr("a1"), newSimpleStr("a2"),
+							),
 						),
 					),
 				),

@@ -77,10 +77,10 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 	//do not end on \r Ex: MSH|^~\&|~
 	for i <= l {
 		//temporal debug location
-		//log.Printf("len: %d current: %d left %s\n",l, i,mssg.raw[i:])
+		//log.Printf("len: %d current: %d left %s\n", l, i, mssg.raw[i:])
 		nextF, consumed, err := next(mssg.raw[i:], p.enc)
 		//temporal debug location
-		//log.Printf("len: %d current: %d consumed: %d err: %s\n",l, i, consumed, err)
+		//log.Printf("len: %d current: %d consumed: %d err: %s\n", l, i, consumed, err)
 		if err != nil {
 
 			if err != errNoMoreData {
@@ -265,12 +265,13 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == SubComponent && nextF == Repeated:
 
 			var complexF *ComplexField
-
-			complexF, err = getLastComplexChild(currentSegment)
+			complexF, err = popLastComplexChild(currentSegment)
 			repeatedParent := (complexF.Type() == Repeated)
 
 			//already on repeated field
 			if repeatedParent {
+				//put it back
+				currentSegment.Push(complexF)
 				//then the last child has to be the component
 				complexF, err = getLastComplexChild(complexF)
 
