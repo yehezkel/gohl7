@@ -2,6 +2,7 @@ package gohl7
 
 import (
 	"errors"
+	//temporal debug location
 	//"log"
 )
 
@@ -72,10 +73,14 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 	last := Simple
 	i, l := 9, len(mssg.raw)
 
-	for i < l {
-
+	//the i <= l instead of i < l is to handle wrong end formated files that
+	//do not end on \r Ex: MSH|^~\&|~
+	for i <= l {
+		//temporal debug location
+		//log.Printf("len: %d current: %d left %s\n",l, i,mssg.raw[i:])
 		nextF, consumed, err := next(mssg.raw[i:], p.enc)
-
+		//temporal debug location
+		//log.Printf("len: %d current: %d consumed: %d err: %s\n",l, i, consumed, err)
 		if err != nil {
 
 			if err != errNoMoreData {
@@ -83,6 +88,7 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			}
 			//treat end of data as segment
 			nextF = segment
+			err = nil
 
 		}
 
@@ -145,7 +151,9 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 			complexF := NewComplexField(Component, ComponentValidator)
 			err = complexF.Push(NewSimpleField(value))
-			err = pushChildToLastChild(currentSegment, complexF)
+			if err == nil {
+				err = pushChildToLastChild(currentSegment, complexF)
+			}
 
 		case last == Repeated && nextF == SubComponent:
 

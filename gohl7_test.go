@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestBadHeader(t *testing.T) {
 	tests := []string{
 		"M||",
@@ -27,17 +26,17 @@ func TestSimpleFieldMessage(t *testing.T) {
 
 	raw := []byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456")
 
-    build := newComplexFieldWithChildren(
-        message, MessageValidator,
+	build := newComplexFieldWithChildren(
+		message, MessageValidator,
 
-        newComplexFieldWithChildren(segment,SegmentValidator,
-            newSimpleStr("MSH"),newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
-        ),
+		newComplexFieldWithChildren(segment, SegmentValidator,
+			newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
+		),
 
-        newComplexFieldWithChildren(segment,SegmentValidator,
-            newSimpleStr("TMP"),newSimpleStr("123"), newSimpleStr("456"),
-        ),
-    )
+		newComplexFieldWithChildren(segment, SegmentValidator,
+			newSimpleStr("TMP"), newSimpleStr("123"), newSimpleStr("456"),
+		),
+	)
 
 	parser, err := NewHl7Parser(raw)
 
@@ -51,12 +50,60 @@ func TestSimpleFieldMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-    err = deepEqual(msg.ComplexField,build)
-    if err != nil {
-        t.Fatal(err)
-    }
+	err = deepEqual(msg.ComplexField, build)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
+func TestRepeatedFieldSimple(t *testing.T) {
+
+	raw := []byte("MSH|^~\\&|aaa|bbb1~bbb2~bbb3\rTMP|ddd1~|~ddd2|~")
+	//raw := []byte("MSH|^~\\&|~")
+
+	build := newComplexFieldWithChildren(
+		message, MessageValidator,
+
+		newComplexFieldWithChildren(segment, SegmentValidator,
+			newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"),
+			newComplexFieldWithChildren(Repeated, RepeatedValidator,
+				newSimpleStr("bbb1"), newSimpleStr("bbb2"), newSimpleStr("bbb3"),
+			),
+		),
+
+		newComplexFieldWithChildren(segment, SegmentValidator,
+			newSimpleStr("TMP"),
+			newComplexFieldWithChildren(Repeated, RepeatedValidator,
+				newSimpleStr("ddd1"), newSimpleStr(""),
+			),
+			newComplexFieldWithChildren(Repeated, RepeatedValidator,
+				newSimpleStr(""), newSimpleStr("ddd2"),
+			),
+
+			newComplexFieldWithChildren(Repeated, RepeatedValidator,
+				newSimpleStr(""), newSimpleStr(""),
+			),
+		),
+	)
+
+	parser, err := NewHl7Parser(raw)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	msg, err := parser.Parse()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = deepEqual(msg.ComplexField, build)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+}
 
 /*func TestSample(t *testing.T) {
 	data := []byte("MSH|^~\\&||bbbb\\||c^s&s~a1a1a1\rPID|435|431|433\nEVN|A28")
