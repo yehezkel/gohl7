@@ -24,83 +24,129 @@ func TestBadHeader(t *testing.T) {
 
 func TestSimpleFieldMessage(t *testing.T) {
 
-	raw := []byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456")
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&||\rTMP||"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
 
-	build := newComplexFieldWithChildren(
-		message, MessageValidator,
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr(""), newSimpleStr(""),
+				),
 
-		newComplexFieldWithChildren(segment, SegmentValidator,
-			newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
-		),
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("TMP"), newSimpleStr(""), newSimpleStr(""),
+				),
+			),
+		},
+		{
+			[]byte("MSH|^~\\&|aaa|bbbb\rTMP|123|456"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
 
-		newComplexFieldWithChildren(segment, SegmentValidator,
-			newSimpleStr("TMP"), newSimpleStr("123"), newSimpleStr("456"),
-		),
-	)
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"), newSimpleStr("bbbb"),
+				),
 
-	parser, err := NewHl7Parser(raw)
-
-	if err != nil {
-		t.Fatal(err)
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("TMP"), newSimpleStr("123"), newSimpleStr("456"),
+				),
+			),
+		},
 	}
 
-	msg, err := parser.Parse()
+	for _, test := range table {
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
 
-	err = deepEqual(msg.ComplexField, build)
-	if err != nil {
-		t.Fatal(err)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
 func TestRepeatedFieldSimple(t *testing.T) {
 
-	raw := []byte("MSH|^~\\&|aaa|bbb1~bbb2~bbb3\rTMP|ddd1~|~ddd2|~")
-	//raw := []byte("MSH|^~\\&|~")
+	table := []struct {
+		input  []byte
+		result Field
+	}{
+		{
+			[]byte("MSH|^~\\&|~"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
 
-	build := newComplexFieldWithChildren(
-		message, MessageValidator,
-
-		newComplexFieldWithChildren(segment, SegmentValidator,
-			newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"),
-			newComplexFieldWithChildren(Repeated, RepeatedValidator,
-				newSimpleStr("bbb1"), newSimpleStr("bbb2"), newSimpleStr("bbb3"),
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"),
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr(""), newSimpleStr(""),
+					),
+				),
 			),
-		),
+		},
+		{
+			[]byte("MSH|^~\\&|aaa|bbb1~bbb2~bbb3\rTMP|ddd1~|~ddd2|~"),
+			newComplexFieldWithChildren(
+				message, MessageValidator,
 
-		newComplexFieldWithChildren(segment, SegmentValidator,
-			newSimpleStr("TMP"),
-			newComplexFieldWithChildren(Repeated, RepeatedValidator,
-				newSimpleStr("ddd1"), newSimpleStr(""),
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("MSH"), newSimpleStr("^~\\&"), newSimpleStr("aaa"),
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr("bbb1"), newSimpleStr("bbb2"), newSimpleStr("bbb3"),
+					),
+				),
+
+				newComplexFieldWithChildren(segment, SegmentValidator,
+					newSimpleStr("TMP"),
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr("ddd1"), newSimpleStr(""),
+					),
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr(""), newSimpleStr("ddd2"),
+					),
+
+					newComplexFieldWithChildren(Repeated, RepeatedValidator,
+						newSimpleStr(""), newSimpleStr(""),
+					),
+				),
 			),
-			newComplexFieldWithChildren(Repeated, RepeatedValidator,
-				newSimpleStr(""), newSimpleStr("ddd2"),
-			),
-
-			newComplexFieldWithChildren(Repeated, RepeatedValidator,
-				newSimpleStr(""), newSimpleStr(""),
-			),
-		),
-	)
-
-	parser, err := NewHl7Parser(raw)
-
-	if err != nil {
-		t.Fatal(err)
+		},
 	}
 
-	msg, err := parser.Parse()
+	for _, test := range table {
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		raw := test.input
+		parser, err := NewHl7Parser(raw)
 
-	err = deepEqual(msg.ComplexField, build)
-	if err != nil {
-		t.Fatal(err)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		msg, err := parser.Parse()
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = deepEqual(msg.ComplexField, test.result)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 }
