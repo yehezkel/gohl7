@@ -2,6 +2,7 @@ package gohl7
 
 import (
     "errors"
+    "fmt"
 )
 
 var (
@@ -53,7 +54,8 @@ func deepEqual(l,r Field) (error) {
 
     childrenL, childrenR := complexL.children, complexR.children
     if len(childrenL) != len(childrenR) {
-        return errNonMatchingChildren
+        //return errNonMatchingChildren
+        return fmt.Errorf("Different amount of childrens \n%s\n %s\n",l,r)
     }
 
     for i:=0; i < len(childrenL); i++ {
