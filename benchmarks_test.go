@@ -2,54 +2,47 @@ package gohl7
 
 import (
 	//"bitbucket.org/yehezkel/gohl7"
-	//"testing"
-	//"io/ioutil"
-	//"os"
+	"testing"
+	"io/ioutil"
+	"os"
 )
 
-/*var(
-	file_path = "test.hl7"
+var(
+	sampleFile = "test.hl7"
 )
 
 
 func BenchmarkLongMessage(b *testing.B){
 
-	file, err := os.Open(file_path) // For read access.
+	file, err := os.Open(sampleFile) // For read access.
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	data,err := ioutil.ReadAll(file)
-
-	//b.Fatalf("length %s\n",data[:10])
-
+	raw,err := ioutil.ReadAll(file)
 	if err != nil {
 		b.Fatal(err)
 	}
-	buffer := make([]byte, len(data))
+
+    err = file.Close()
 
 	//reset timmer
 	b.ResetTimer()
-
-	defer file.Close()
+    if err != nil {
+        b.Fatal(err)
+    }
 
 	for i := 0; i < b.N; i++{
 
-		//skip copy
-		b.StopTimer()
-		_ = copy(buffer, data)
-		b.StartTimer()
-
-		parser, err := gohl7.NewParser(buffer)
+		parser, err := NewHl7Parser(raw)
 		if err != nil{
 			b.Fatal(err)
 		}
 
-
 		//this is the function where all the logic happends
-		_, err = parser.Parse()
+	    _, err = parser.Parse()
 		if err != nil{
 			b.Fatal(err)
 		}
 	}
-}*/
+}
