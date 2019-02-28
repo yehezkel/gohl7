@@ -134,13 +134,17 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//create complex field component
 			componentF := NewComplexField(Component, ComponentValidator)
 			//push component into segment
-			currentSegment.Push(componentF)
+			err = currentSegment.Push(componentF)
 			//create complex field subcomponent
 			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
 			//push subcomponent into component
-			componentF.Push(subcomponentF)
+			if err == nil {
+				err = componentF.Push(subcomponentF)
+			}
 			//push simple field into subcomponent
-			subcomponentF.Push(NewSimpleField(value))
+			if err == nil {
+				err = subcomponentF.Push(NewSimpleField(value))
+			}
 
 		case last == Repeated && nextF == segment:
 			fallthrough
@@ -166,12 +170,15 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//create complex field subcomponent
 			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
 			//push subcomponent into component
-			componentF.Push(subcomponentF)
+			err = componentF.Push(subcomponentF)
 			//push simple field into subcomponent
-			subcomponentF.Push(NewSimpleField(value))
-
+			if err == nil {
+				err = subcomponentF.Push(NewSimpleField(value))
+			}
 			//push new component into Repeated field
-			err = pushChildToLastChild(currentSegment, componentF)
+			if err == nil {
+				err = pushChildToLastChild(currentSegment, componentF)
+			}
 
 		case last == Component && nextF == segment:
 			fallthrough
@@ -183,6 +190,10 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 
 			var complexF *ComplexField
 			complexF, err = getLastComplexChild(currentSegment)
+			if err != nil {
+				break
+			}
+
 			repeatedParent := (complexF.Type() == Repeated)
 
 			if repeatedParent {
@@ -192,10 +203,13 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			}
 
 		case last == Component && nextF == SubComponent:
-			//| ~ ^ ^ &
+
 			var complexF *ComplexField
 
 			complexF, err = getLastComplexChild(currentSegment)
+			if err != nil {
+				break
+			}
 			repeatedParent := (complexF.Type() == Repeated)
 
 			if repeatedParent {
@@ -208,19 +222,26 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			//create complex field subcomponent
 			subcomponentF := NewComplexField(SubComponent, SubComponentValidator)
 			//push subcomponent into component
-			complexF.Push(subcomponentF)
+			if err == nil {
+				err = complexF.Push(subcomponentF)
+			}
+
 			//push simple field into subcomponent
-			subcomponentF.Push(NewSimpleField(value))
+			if err == nil {
+				subcomponentF.Push(NewSimpleField(value))
+			}
 
 		case last == Component && nextF == Repeated:
 
 			var complexF *ComplexField
-
 			complexF, err = popLastComplexChild(currentSegment)
+			if err != nil {
+				break
+			}
 
 			//already a repeated field
 			if complexF.Type() == Repeated {
-				//put it back
+				//put it back, no need to check for error
 				currentSegment.Push(complexF)
 				//then its last child has to be the component
 				complexF, err = getLastComplexChild(complexF)
@@ -229,14 +250,18 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				//build a new repeated field
 				repeatedF := NewComplexField(Repeated, RepeatedValidator)
 				//push existing component to it
-				repeatedF.Push(complexF)
+				err = repeatedF.Push(complexF)
 
 				//push repeated field to segment
-				currentSegment.Push(repeatedF)
+				if err == nil {
+					err = currentSegment.Push(repeatedF)
+				}
 
 			}
 			//push to component the simple field
-			complexF.Push(NewSimpleField(value))
+			if err == nil {
+				complexF.Push(NewSimpleField(value))
+			}
 
 		case last == SubComponent && nextF == Simple:
 			fallthrough
@@ -250,8 +275,11 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 		case last == SubComponent && nextF == segment:
 
 			var complexF *ComplexField
-
 			complexF, err = getLastComplexChild(currentSegment)
+			if err != nil {
+				break
+			}
+
 			repeatedParent := (complexF.Type() == Repeated)
 
 			if repeatedParent {
@@ -260,17 +288,23 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 			}
 
 			//complexF should reference the current component
-			pushChildToLastChild(complexF, NewSimpleField(value))
+			if err == nil {
+				err = pushChildToLastChild(complexF, NewSimpleField(value))
+			}
 
 		case last == SubComponent && nextF == Repeated:
 
 			var complexF *ComplexField
 			complexF, err = popLastComplexChild(currentSegment)
+			if err != nil {
+				break
+			}
+
 			repeatedParent := (complexF.Type() == Repeated)
 
 			//already on repeated field
 			if repeatedParent {
-				//put it back
+				//put it back, no need to check for error
 				currentSegment.Push(complexF)
 				//then the last child has to be the component
 				complexF, err = getLastComplexChild(complexF)
@@ -279,14 +313,17 @@ func (p *Hl7Parser) Parse() (*Message, error) {
 				//build a new repeated field
 				repeatedF := NewComplexField(Repeated, RepeatedValidator)
 				//push existing component to it
-				repeatedF.Push(complexF)
-
+				err = repeatedF.Push(complexF)
 				//push repeated field to segment
-				currentSegment.Push(repeatedF)
+				if err == nil {
+					err = currentSegment.Push(repeatedF)
+				}
 			}
 
 			//complexF should reference the current component
-			pushChildToLastChild(complexF, NewSimpleField(value))
+			if err == nil {
+				err = pushChildToLastChild(complexF, NewSimpleField(value))
+			}
 
 		case last == segment && nextF == segment:
 			//special case for CR+EndOfData
