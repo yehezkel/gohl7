@@ -5,7 +5,6 @@ import (
 )
 
 var (
-	errBadEncoding      = errors.New("Invalid Encoding")
 	ErrBadEncoding      = errors.New("Invalid Encoding")
 	ErrRepeatedEncoding = errors.New("Invalid Encoding, repeated chars")
 )
@@ -46,4 +45,25 @@ func ParseEncoding(buffer []byte) (*Encoding, error) {
 
 	return e, nil
 
+}
+
+// Function Clean removes all unescape/clean the given input
+// the process is done in-place no buffer is made
+func (enc *Encoding) Clean(input []byte) []byte {
+
+	l, j := len(input), 0
+
+	for i := 0; i < l; j++ {
+
+		if input[i] == enc.Escaping {
+			i++
+			//not checking for out of bounds because this will imply a wrongly formatted
+			//field, which should have be cought be the parser
+		}
+
+		input[j] = input[i]
+		i++
+	}
+
+	return input[:j]
 }
