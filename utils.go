@@ -8,7 +8,7 @@ import (
 var (
 	errNoMatchingTypes           = errors.New("No matching type")
 	errNoEqualValue              = errors.New("No equal simple value")
-	errNonInternalImplementation = errors.New("Provided fields do not match internal implementation")
+	ErrNonInternalImplementation = errors.New("Provided fields do not match internal implementation")
 	errNonMatchingChildren       = errors.New("Different amount of childrens")
 )
 
@@ -46,7 +46,7 @@ func deepEqual(l, r Field) error {
 		simpleR, okR := r.(*SimpleField)
 
 		if !okL || !okR {
-			return errNonInternalImplementation
+			return ErrNonInternalImplementation
 		}
 
 		if string(simpleL.v) != string(simpleR.v) {
@@ -60,7 +60,7 @@ func deepEqual(l, r Field) error {
 	complexR, okR := r.(*ComplexField)
 
 	if !okL || !okR {
-		return errNonInternalImplementation
+		return ErrNonInternalImplementation
 	}
 
 	childrenL, childrenR := complexL.children, complexR.children

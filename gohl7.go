@@ -1,164 +1,68 @@
 package gohl7
 
-/*import (
-	"errors"
-)
+// Function CleanRawValue return the escaped field free value of a simple field
+// this function does create a copy of the value, if an in-place escape char replacement is
+// need it (for saving memory) use RawValue+Encoding.Clean.
+// this function could have receive a *SimpleField instead of a Field, but to free the caller
+// of the type assertion we are doing it here.
+func CleanRawValue(simple Field, enc *Encoding) ([]byte, error) {
 
-var (
-	errSubComponentType = errors.New(
-		"Hl7 SubComponent may only contain SimpleFields",
-	)
-	errComponentType = errors.New(
-		"Hl7 Component may only contain SimpleFields and SubComponents",
-	)
-	errRepeatType = errors.New(
-		"Hl7 Repeated may only contain SimpleFields, SubComponents, Component",
-	)
-)
-
-type Hl7DataType interface {
-	Field(index int) (Hl7DataType, bool)
-}
-
-type Hl7ComposedType interface {
-	Hl7DataType
-	AppendValue(v Hl7DataType) error
-}
-
-type SimpleField struct {
-	value []byte
-}
-
-type SubComponent struct {
-	fields []Hl7DataType
-}
-
-type Component struct {
-	fields []Hl7DataType
-}
-
-type Repeated struct {
-	fields []Hl7DataType
-}
-
-type Segment struct {
-	fields []Hl7DataType
-}
-
-func NewSimpleField(value []byte) *SimpleField {
-	return &SimpleField{
-		value: value,
-	}
-}
-
-func (simple *SimpleField) Field(index int) (Hl7DataType, bool) {
-
-	if index != 0 {
-		return nil, false
+	if simple == nil {
+		return []byte{}, nil
 	}
 
-	return simple, true
-}
-
-func (simple *SimpleField) String() string {
-	return string(simple.value)
-}
-
-func (s *SubComponent) Field(index int) (Hl7DataType, bool) {
-	l := len(s.fields)
-
-	if index < 0 || index >= l {
-		return nil, false
-	}
-
-	return s.fields[index], true
-}
-
-func (s *SubComponent) AppendValue(v Hl7DataType) (err error) {
-
-	_, ok := v.(*SimpleField)
-
+	s, ok := simple.(*SimpleField)
 	if !ok {
-		return errSubComponentType
+		//error defined on utils.go
+		return nil, ErrNonInternalImplementation
 	}
 
-	s.fields = append(s.fields, v)
+	l, j := len(s.v), 0
+	escapedValue := make([]byte, l)
 
-	return
+	for i := 0; i < l; j++ {
+
+		if s.v[i] == enc.Escaping {
+			i++
+			//not checking for out of bounds because this will imply a wrongly formatted
+			//field, which should have be cought be the parser
+		}
+
+		escapedValue[j] = s.v[i]
+		i++
+	}
+
+	return escapedValue[:j], nil
 }
 
-func (c *Component) Field(index int) (Hl7DataType, bool) {
-	l := len(c.fields)
+// Function RawValue gives you raw byte of a simple field.
+// this function could have been a *SimpleField method but to discorage
+// it overuse, it has been done similar to CleanRawValue.
+func RawValue(simple *SimpleField) []byte {
 
-	if index < 0 || index >= l {
-		return nil, false
+	if simple == nil {
+		return []byte{}
 	}
 
-	return c.fields[index], true
+	return simple.v
 }
 
-func (c *Component) AppendValue(v Hl7DataType) (err error) {
+// Function ContainerFieldChildren returns the list of children from a ContainerField
+// Given the fact this function is tied to the ComplexField implementation, it could have
+// have been implemented as a method but to keep things consistent with SimpleField is done
+// as a separte method
+func ContainerFieldChildren(container Field) ([]Field, error) {
 
-	switch v.(type) {
-	case *SimpleField, *SubComponent:
-		err = nil
-	default:
-		return errComponentType
+	if container == nil {
+		return nil, nil
 	}
 
-	c.fields = append(c.fields, v)
+	complexF, ok := container.(*ComplexField)
+	if !ok {
+		//error defined on utils.go
+		return nil, ErrNonInternalImplementation
+	}
 
-	return
+	return complexF.children, nil
+
 }
-
-//Hl7DataType Field method implementation
-func (r *Repeated) Field(index int) (Hl7DataType, bool) {
-	l := len(r.fields)
-
-	if index < 0 || index >= l {
-		return nil, false
-	}
-
-	return r.fields[index], true
-}
-
-//Hl7ComposedType AppendValue implementation
-func (r *Repeated) AppendValue(v Hl7DataType) (err error) {
-
-	switch v.(type) {
-	case *SimpleField, *SubComponent, *Component:
-		err = nil
-	default:
-		return errRepeatType
-	}
-
-	r.fields = append(r.fields, v)
-
-	return
-}
-
-//Hl7DataType Field method implementation
-func (s *Segment) Field(index int) (Hl7DataType, bool) {
-	l := len(s.fields)
-
-	if index < 0 || index >= l {
-		return nil, false
-	}
-
-	return s.fields[index], true
-}
-
-//Hl7ComposedType AppendValue implementation
-func (s *Segment) AppendValue(v Hl7DataType) (err error) {
-
-	switch v.(type) {
-	case *SimpleField, *SubComponent, *Component, *Repeated:
-		err = nil
-	default:
-		return errRepeatType
-	}
-
-	s.fields = append(s.fields, v)
-
-	return
-}*/

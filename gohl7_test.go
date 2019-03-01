@@ -620,3 +620,42 @@ func TestRepeatedComponentSubComponentField(t *testing.T) {
 	}
 
 }
+
+func TestCleanRawValue(t *testing.T) {
+
+	table := []struct {
+		encoding string
+		input    string
+		output   string
+	}{
+		{
+			`|^~\&`,
+			`aaa\^`,
+			`aaa^`,
+		},
+		{
+			`|^~\&`,
+			`aa\\`,
+			`aa\`,
+		},
+	}
+
+	for _, test := range table {
+
+		enc, err := ParseEncoding([]byte(test.encoding))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		simple := NewSimpleField([]byte(test.input))
+		out, err := CleanRawValue(simple, enc)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if string(out) != test.output {
+			t.Errorf("Expecting clean value %s got %s", test.output, out)
+		}
+	}
+}
